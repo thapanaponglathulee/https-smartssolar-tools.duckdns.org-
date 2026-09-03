@@ -21,6 +21,16 @@ npx http-server -p 8080 .
 
 deploy จริงเพียงคัดลอกทั้งโฟลเดอร์ไปวางใต้ web root — ไม่มี dependency ฝั่งเซิร์ฟเวอร์
 
+### ไฟล์เดียวจบ สำหรับส่งให้ทีมทดสอบ
+
+```bash
+node tools/build-single-file.js          # ได้ dist/mockup-single-file.html
+node tools/build-single-file.js ~/ส่งทีม.html
+```
+
+รวม HTML, CSS และ JS ทั้งหมดไว้ในไฟล์เดียว เปิดจากเครื่องได้เลย ส่งแนบอีเมลหรือ LINE ได้
+ปุ่มส่งออก CSV ทำงานได้ทั้งตอนเปิดผ่านเว็บเซิร์ฟเวอร์และตอนเปิดผ่านลิงก์ที่แชร์
+
 ---
 
 ## วิธีทดสอบ

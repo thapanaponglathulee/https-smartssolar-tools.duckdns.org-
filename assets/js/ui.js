@@ -113,25 +113,54 @@ SS.ui = (function () {
     setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 300); }, 4200);
   }
 
-  function csv(filename, rows) {
-    var text = rows.map(function (r) {
-      return r.map(function (c) {
-        var s = String(c === null || c === undefined ? '' : c);
-        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-      }).join(',');
-    }).join('\n');
-    var blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' });
+  /* การบันทึกไฟล์
+     เปิดจากเว็บเซิร์ฟเวอร์ปกติ → ใช้ลิงก์ดาวน์โหลดของเบราว์เซอร์
+     เปิดจากลิงก์ artifact ของ claude.ai → ต้องผ่าน claude.use('downloads')
+     เพราะตัวแสดงผลไม่อนุญาตให้หน้าเว็บสั่งดาวน์โหลดเอง */
+  var dlPromise = null;
+  function initDownloads() {
+    if (dlPromise) return dlPromise;
+    /* ไม่จำผลเป็น null ถ้ายังไม่มี window.claude ตอนเรียก — ให้ถามใหม่ครั้งหน้าได้ */
+    if (typeof window.claude !== 'object' || !window.claude || typeof window.claude.use !== 'function')
+      return Promise.resolve(null);
+    dlPromise = window.claude.use('downloads').catch(function () { return null; });
+    return dlPromise;
+  }
+
+  function browserSave(filename, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = filename;
     document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   }
 
+  function csv(filename, rows) {
+    var text = '\ufeff' + rows.map(function (r) {
+      return r.map(function (c) {
+        var s = String(c === null || c === undefined ? '' : c);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\n');
+
+    initDownloads().then(function (d) {
+      if (!d) return browserSave(filename, text);
+      d.save({ filename: filename, data: text }).then(function () {
+        toast('บันทึกไฟล์ ' + esc(filename) + ' แล้ว', 'ok');
+      }, function (e) {
+        var code = e && e.code;
+        if (code === 'declined') return;
+        if (code === 'rate_limited') return toast('มีกล่องยืนยันการบันทึกเปิดอยู่แล้ว กรุณาลองใหม่', 'err');
+        browserSave(filename, text);
+      });
+    });
+  }
+
   return {
     esc: esc, be: be, date: date, range: range, monthName: monthName, num: num, money: money,
     pill: pill, dayPill: dayPill, leavePill: leavePill, person: person, initials: initials,
     empty: empty, options: options, note: note, ref: ref,
-    modal: modal, closeModal: closeModal, confirm: confirmBox, toast: toast, csv: csv,
+    modal: modal, closeModal: closeModal, confirm: confirmBox, toast: toast, csv: csv, initDownloads: initDownloads,
     M_FULL: M_FULL, M_SHORT: M_SHORT, DAY_FULL: DAY_FULL
   };
 })();

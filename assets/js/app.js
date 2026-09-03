@@ -177,6 +177,7 @@ SS.app = (function () {
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') U.closeModal(); });
 
+    U.initDownloads();   /* ขอสิทธิ์บันทึกไฟล์ล่วงหน้า เพื่อให้ปุ่มส่งออก CSV ตอบสนองทันที */
     SS.views._startClock();
     render();
   }
@@ -184,4 +185,5 @@ SS.app = (function () {
   return { boot: boot, go: go, refresh: render, pages: PAGES };
 })();
 
-document.addEventListener('DOMContentLoaded', SS.app.boot);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', SS.app.boot);
+else SS.app.boot();
