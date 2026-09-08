@@ -9,62 +9,62 @@ window.SS = window.SS || {};
 SS.SEED_EMPLOYEES = [
   { id: 'EMP-001', name: 'ธเนศ วรพัฒน์', position: 'กรรมการผู้จัดการ', dept: 'ADM',
     managerId: null, backupApproverId: null, role: 'exec', shift: 'day',
-    exemptCheckin: true, startDate: '2018-03-01', probationPassedDate: '2018-06-28', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: true, startDate: '2018-03-01', probationPassedDate: '2018-06-28', positionId: 'POS-10', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
   { id: 'EMP-002', name: 'ณัฐพล เทคโนดล', position: 'เจ้าหน้าที่สารสนเทศ (แอดมินระบบ)', dept: 'ADM',
     managerId: 'EMP-100', backupApproverId: 'EMP-103', role: 'admin', shift: 'day',
-    exemptCheckin: true, startDate: '2022-01-10', probationPassedDate: '2022-05-09', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: true, startDate: '2022-01-10', probationPassedDate: '2022-05-09', positionId: 'POS-07', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
   { id: 'EMP-100', name: 'ปวีณา ทองมั่น', position: 'เจ้าหน้าที่ทรัพยากรบุคคลอาวุโส', dept: 'ADM',
     managerId: null, backupApproverId: 'EMP-103', role: 'hr', shift: 'day',
-    exemptCheckin: false, startDate: '2020-02-03', probationPassedDate: '2020-06-01', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: false, startDate: '2020-02-03', probationPassedDate: '2020-06-01', positionId: 'POS-06', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
   { id: 'EMP-103', name: 'อรวรรณ สุขเจริญ', position: 'เจ้าหน้าที่ทรัพยากรบุคคล (ผู้สำรอง)', dept: 'ADM',
     managerId: 'EMP-100', backupApproverId: 'EMP-100', role: 'hr', shift: 'day',
-    exemptCheckin: false, startDate: '2023-05-15', probationPassedDate: '2023-09-11', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: false, startDate: '2023-05-15', probationPassedDate: '2023-09-11', positionId: 'POS-06', rawDept: null, empStatus: 'probation', isTest: false, active: true, defaultJobType: 'office' },
 
   { id: 'EMP-101', name: 'กิตติพงษ์ ศรีวรรณา', position: 'ผู้จัดการฝ่ายวิศวกรรม', dept: 'ENG',
     managerId: null, backupApproverId: 'EMP-102', role: 'manager', shift: 'day',
-    exemptCheckin: false, startDate: '2019-07-01', probationPassedDate: '2019-10-28', isTest: false, active: true, defaultJobType: 'onsite' },
+    exemptCheckin: false, startDate: '2019-07-01', probationPassedDate: '2019-10-28', positionId: 'POS-09', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'onsite' },
 
   { id: 'EMP-102', name: 'สุรเดช พงษ์ไพบูลย์', position: 'ผู้จัดการฝ่ายปฏิบัติการ', dept: 'OM',
     managerId: null, backupApproverId: 'EMP-101', role: 'manager', shift: 'day',
-    exemptCheckin: false, startDate: '2019-11-04', probationPassedDate: '2020-03-02', isTest: false, active: true, defaultJobType: 'om' },
+    exemptCheckin: false, startDate: '2019-11-04', probationPassedDate: '2020-03-02', positionId: 'POS-09', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'om' },
 
   { id: 'EMP-201', name: 'ธนากร ใจดี', position: 'วิศวกรไฟฟ้า', dept: 'ENG',
     managerId: 'EMP-101', backupApproverId: 'EMP-102', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2021-04-01', probationPassedDate: '2021-07-29', isTest: false, active: true, defaultJobType: 'onsite' },
+    exemptCheckin: false, startDate: '2021-04-01', probationPassedDate: '2021-07-29', positionId: 'POS-05', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'onsite' },
 
-  { id: 'EMP-202', name: 'ชนิดา แก้วประเสริฐ', position: 'วิศวกรออกแบบระบบ', dept: 'ENG',
+  { id: 'EMP-202', name: 'ชนิดา แก้วประเสริฐ', position: 'วิศวกรออกแบบระบบ', dept: null,
     managerId: 'EMP-101', backupApproverId: 'EMP-102', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2022-08-16', probationPassedDate: '2022-12-13', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: false, startDate: '2022-08-16', probationPassedDate: '2022-12-13', positionId: null, rawDept: 'Project-Coordination', empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
   { id: 'EMP-203', name: 'วีระพล อินทรสุข', position: 'หัวหน้าช่างติดตั้ง', dept: 'ENG',
     managerId: 'EMP-101', backupApproverId: 'EMP-102', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2020-06-01', probationPassedDate: '2020-09-28', isTest: false, active: true, defaultJobType: 'onsite' },
+    exemptCheckin: false, startDate: '2020-06-01', probationPassedDate: '2020-09-28', positionId: 'POS-03', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'onsite' },
 
   /* BR-09 · ยังไม่ผ่านการประเมิน → ยื่นลาพักร้อนไม่ได้ แต่ลาป่วย/ลากิจได้ */
-  { id: 'EMP-204', name: 'อนุชา ทับทิมทอง', position: 'ช่างเทคนิคติดตั้ง', dept: 'ENG',
+  { id: 'EMP-204', name: 'อนุชา ทับทิมทอง', position: 'ช่างเทคนิคติดตั้ง', dept: null,
     managerId: 'EMP-101', backupApproverId: 'EMP-102', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2026-06-15', probationPassedDate: '', isTest: false, active: true, defaultJobType: 'onsite' },
+    exemptCheckin: false, startDate: '2026-06-15', probationPassedDate: '', positionId: null, rawDept: 'Project Manager', empStatus: 'probation', isTest: false, active: true, defaultJobType: 'onsite' },
 
   { id: 'EMP-205', name: 'สมชาย เรืองฤทธิ์', position: 'ช่างเทคนิค O&M', dept: 'OM',
     managerId: 'EMP-102', backupApproverId: 'EMP-101', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2021-02-01', probationPassedDate: '2021-05-31', isTest: false, active: true, defaultJobType: 'om' },
+    exemptCheckin: false, startDate: '2021-02-01', probationPassedDate: '2021-05-31', positionId: 'POS-02', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'om' },
 
   /* CI-13 · กะกลางคืน — คิดมาสายเทียบ 20:00 ไม่ใช่ 08:30 */
   { id: 'EMP-206', name: 'พิมพ์ชนก วัฒนกุล', position: 'เจ้าหน้าที่ Monitoring (กะกลางคืน)', dept: 'OM',
     managerId: 'EMP-102', backupApproverId: 'EMP-101', role: 'employee', shift: 'night',
-    exemptCheckin: false, startDate: '2023-01-09', probationPassedDate: '2023-05-08', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: false, startDate: '2023-01-09', probationPassedDate: '2023-05-08', positionId: 'POS-08', rawDept: null, empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
-  { id: 'EMP-207', name: 'กมลชนก ศิริพร', position: 'เจ้าหน้าที่ธุรการ', dept: 'ADM',
+  { id: 'EMP-207', name: 'กมลชนก ศิริพร', position: 'เจ้าหน้าที่ธุรการ', dept: null,
     managerId: 'EMP-100', backupApproverId: 'EMP-103', role: 'employee', shift: 'day',
-    exemptCheckin: false, startDate: '2022-03-01', probationPassedDate: '2022-06-28', isTest: false, active: true, defaultJobType: 'office' },
+    exemptCheckin: false, startDate: '2022-03-01', probationPassedDate: '2022-06-28', positionId: null, rawDept: 'Opeartion&Maintenance', empStatus: 'regular', isTest: false, active: true, defaultJobType: 'office' },
 
   /* DSH-03 · บัญชีทดสอบ ห้ามลบ ต้องไม่อยู่ในตัวเลขใด ๆ */
-  { id: 'EMP-900', name: 'ผู้ใช้งาน ทดสอบ #test', position: 'บัญชีสำหรับทดสอบระบบ', dept: 'ADM',
+  { id: 'EMP-900', name: 'ผู้ใช้งาน ทดสอบ #test', position: 'บัญชีสำหรับทดสอบระบบ', dept: null,
     managerId: 'EMP-100', backupApproverId: 'EMP-103', role: 'employee', shift: 'day',
-    exemptCheckin: true, startDate: '2024-01-01', probationPassedDate: '2024-04-29', isTest: true, active: true, defaultJobType: 'office' }
+    exemptCheckin: true, startDate: '2024-01-01', probationPassedDate: '2024-04-29', positionId: null, rawDept: 'Project Manager', empStatus: 'suspended', isTest: true, active: true, defaultJobType: 'office' }
 ];
 
 /* APV-01 · ตารางอำนาจอนุมัติ — ทุกที่ที่ถามว่า "ใครอนุมัติเรื่องนี้" ต้องถามตารางนี้ */
@@ -122,6 +122,68 @@ SS.SEED_EVENTS = function (T) {
       detail: 'ภาคบังคับสำหรับช่างติดตั้งทุกคน · เริ่ม 08:30', scope: 'dept:ENG', countsAsWorkday: false },
     { id: 'EV-03', title: 'Outing ประจำปี', from: SS.d.add(T, 24), to: SS.d.add(T, 25),
       detail: 'จัดตรงกับวันหยุด — ผู้เข้าร่วมได้ลาชดเชยวันทำงานโดยไม่ต้องเช็คอินที่ไซต์', scope: 'all', countsAsWorkday: true }
+  ];
+};
+
+/* ==========================================================================
+   ใบรับรองของพนักงาน (C2 · C3) — ข้อมูลสมมติ
+   วางให้ครบทุกสถานะที่หน้าจอต้องรองรับ: ใช้ได้ · ใกล้หมด · หมดอายุ · ยังไม่เคยมี
+   ========================================================================== */
+SS.SEED_CERTS = function (T) {
+  var A = SS.d.add;
+  var n = 0;
+  function C(o) {
+    n++;
+    return {
+      id: 'CF-' + (1000 + n), empId: o.emp, typeId: o.type,
+      issuer: o.issuer || '', certNo: o.no || '',
+      issued: o.issued, expiry: o.expiry === undefined ? null : o.expiry,
+      attachment: o.file || '', note: o.note || '',
+      version: o.version || 1, supersededBy: null,
+      by: 'EMP-100', at: T
+    };
+  }
+  return [
+    /* EMP-201 ธนากร — ครบเกือบหมด มีใบหนึ่งใกล้หมดอายุ */
+    C({ emp: 'EMP-201', type: 'CT-09', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ก', no: 'HW-6801', issued: A(T, -700), expiry: A(T, 30), file: 'สูง-ธนากร.pdf' }),
+    C({ emp: 'EMP-201', type: 'CT-08', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ก', no: '4P-6802', issued: A(T, -400), expiry: A(T, 330), file: '4ผู้-ธนากร.pdf' }),
+    C({ emp: 'EMP-201', type: 'CT-10', issuer: 'บริษัท (จัดอบรมภายใน)', issued: A(T, -900), expiry: null, file: '' }),
+    C({ emp: 'EMP-201', type: 'CT-02', issuer: 'สภากาชาดไทย', issued: A(T, -300), expiry: A(T, 430), file: 'ปฐมพยาบาล.pdf' }),
+
+    /* EMP-204 อนุชา — ใบบังคับหมดอายุแล้ว แต่ยังลงไซต์อยู่ → เคสของ C6 */
+    C({ emp: 'EMP-204', type: 'CT-09', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ข', no: 'HW-6612', issued: A(T, -742), expiry: A(T, -12), file: '' }),
+    C({ emp: 'EMP-204', type: 'CT-10', issuer: 'บริษัท (จัดอบรมภายใน)', issued: A(T, -200), expiry: null, file: '' }),
+
+    /* EMP-203 วีระพล หัวหน้าชุด — มี จป. และมีประวัติต่ออายุสองฉบับ */
+    C({ emp: 'EMP-203', type: 'CT-05', issuer: 'กรมสวัสดิการและคุ้มครองแรงงาน', no: 'SO-6501', issued: A(T, -1100), expiry: null, file: 'จป-วีระพล.pdf' }),
+    C({ emp: 'EMP-203', type: 'CT-09', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ก', no: 'HW-6501', issued: A(T, -1100), expiry: A(T, -370), file: '', version: 1 }),
+    C({ emp: 'EMP-203', type: 'CT-09', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ก', no: 'HW-6811', issued: A(T, -360), expiry: A(T, 370), file: 'สูง-วีระพล.pdf', version: 2 }),
+    C({ emp: 'EMP-203', type: 'CT-08', issuer: 'ศูนย์ฝึกอบรมความปลอดภัย ก', no: '4P-6810', issued: A(T, -360), expiry: A(T, 370), file: '' }),
+
+    /* EMP-205 สมชาย O&M */
+    C({ emp: 'EMP-205', type: 'CT-10', issuer: 'บริษัท (จัดอบรมภายใน)', issued: A(T, -600), expiry: null, file: '' }),
+    C({ emp: 'EMP-205', type: 'CT-04', issuer: 'ศูนย์ฝึกอบรม ค', no: 'FL-6702', issued: A(T, -500), expiry: A(T, 595), file: 'forklift.pdf' }),
+
+    /* EMP-202 ชนิดา วิศวกรออกแบบ — ยังไม่มีใบ กว. ซึ่งเป็นใบบังคับตามตำแหน่ง */
+    C({ emp: 'EMP-202', type: 'CT-10', issuer: 'บริษัท (จัดอบรมภายใน)', issued: A(T, -700), expiry: null, file: '' })
+  ];
+};
+
+/* เอกสารอ่อนไหวตาม PDPA (C4) — เก็บได้เฉพาะ ผ่าน/ไม่ผ่าน + วันที่ + ครบกำหนดถัดไป
+   *** ห้ามมีไฟล์แนบ ห้ามมีรายละเอียดผล *** */
+SS.SEED_SENSITIVE = function (T) {
+  var A = SS.d.add, n = 0;
+  function S2(emp, type, pass, checked, next) {
+    n++;
+    return { id: 'SD-' + (2000 + n), empId: emp, typeId: type, pass: pass,
+             checked: checked, next: next, by: 'EMP-100', at: T };
+  }
+  return [
+    S2('EMP-201', 'CT-12', true,  A(T, -250), A(T, 115)),
+    S2('EMP-201', 'CT-13', true,  A(T, -900), null),
+    S2('EMP-203', 'CT-12', true,  A(T, -100), A(T, 265)),
+    S2('EMP-204', 'CT-12', true,  A(T, -356), A(T, 9)),      /* ครบกำหนดใน 9 วัน */
+    S2('EMP-205', 'CT-14', false, A(T, -30),  A(T, 335))     /* ไม่ผ่าน — ต้องเห็นว่าระบบเก็บได้ */
   ];
 };
 

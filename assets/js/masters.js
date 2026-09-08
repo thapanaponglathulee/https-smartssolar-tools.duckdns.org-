@@ -292,10 +292,117 @@ SS.EXPIRY_RULES = [
     calc: function (year) { return year + '-12-31'; } }
 ];
 
+/* ==========================================================================
+   โครงสร้างองค์กรสามชั้น บริษัท → ฝ่าย → แผนก (O1)
+   *** โครงสร้างนี้เป็นของสมมติ ของจริงต้องให้ฝ่ายบุคคลกรอกเอง ***
+   ไม่ลบ ใช้ปิดการใช้งานแทน เพราะข้อมูลเก่าอ้างอยู่
+   ========================================================================== */
+SS.COMPANY = 'บริษัท สมาร์ท เอ็น คอนซัลแทนท์ จำกัด';
+
+SS.DIVISIONS = [
+  { id: 'DIV-OPS', name: 'ฝ่ายปฏิบัติการ',           order: 1, enabled: true },
+  { id: 'DIV-ENG', name: 'ฝ่ายวิศวกรรมและออกแบบ',    order: 2, enabled: true },
+  { id: 'DIV-SUP', name: 'ฝ่ายสนับสนุน',             order: 3, enabled: true },
+  { id: 'DIV-MGT', name: 'ฝ่ายบริหาร',               order: 4, enabled: true }
+];
+
+/* ==========================================================================
+   ทะเบียนตำแหน่งงาน (O2)
+   *** ตำแหน่งไม่ให้สิทธิ์ *** สิทธิ์อยู่ที่แท็บสิทธิ์ในโปรไฟล์ (S8)
+   level ใช้จัดกลุ่มในรายงานและในผังเท่านั้น
+   ========================================================================== */
+SS.POSITION_LEVELS = [
+  { id: 'ops',   name: 'ปฏิบัติการ' },
+  { id: 'lead',  name: 'หัวหน้างาน' },
+  { id: 'prof',  name: 'วิชาชีพ' },
+  { id: 'sup',   name: 'สนับสนุน' },
+  { id: 'exec',  name: 'บริหาร' }
+];
+
+SS.POSITIONS = [
+  { id: 'POS-01', name: 'ช่างเทคนิคติดตั้ง',        level: 'ops',  enabled: true },
+  { id: 'POS-02', name: 'ช่างเทคนิคซ่อมบำรุง',      level: 'ops',  enabled: true },
+  { id: 'POS-03', name: 'หัวหน้าชุดติดตั้ง',         level: 'lead', enabled: true },
+  { id: 'POS-04', name: 'วิศวกรออกแบบ',             level: 'prof', enabled: true },
+  { id: 'POS-05', name: 'วิศวกรไฟฟ้า',              level: 'prof', enabled: true },
+  { id: 'POS-06', name: 'เจ้าหน้าที่ทรัพยากรบุคคล',  level: 'sup',  enabled: true },
+  { id: 'POS-07', name: 'เจ้าหน้าที่สารสนเทศ',       level: 'sup',  enabled: true },
+  { id: 'POS-08', name: 'เจ้าหน้าที่ Monitoring',    level: 'ops',  enabled: true },
+  { id: 'POS-09', name: 'ผู้จัดการฝ่าย',             level: 'exec', enabled: true },
+  { id: 'POS-10', name: 'กรรมการผู้จัดการ',          level: 'exec', enabled: true },
+  { id: 'POS-11', name: 'พนักงานขับรถ',             level: 'ops',  enabled: false }
+];
+
+/* ==========================================================================
+   S12 · ทะเบียนชนิดใบรับรอง 21 ชนิด (C5)
+   renewMonths = รอบต่ออายุ · null = ไม่หมดอายุ
+   requiredFor = 'all' · 'job:<jobTypeId>' · 'pos:<positionId>' · 'none'
+   block       = 'none' ไม่กัน · 'warn' เตือนเฉย ๆ · 'strong' เตือนแรงแต่ผ่านได้ถ้าระบุเหตุผล
+   sensitive   = ธง PDPA · ติ๊กแล้วบังคับใช้ฟอร์ม C4 และห้ามแนบไฟล์
+   ========================================================================== */
+SS.CERT_TYPES = [
+  /* ลิสต์จริงของบริษัท 14 รายการ */
+  { id: 'CT-01', name: 'พื้นฐานการบริหารโครงการ',        renewMonths: null, requiredFor: 'none',       block: 'none',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-02', name: 'การปฐมพยาบาลเบื้องต้น',          renewMonths: 24,   requiredFor: 'job:onsite', block: 'warn',   warnDays: 60, notify: ['own', 'mgr'],         sensitive: false, enabled: true },
+  { id: 'CT-03', name: 'ความปลอดภัยในพื้นที่อับอากาศ',    renewMonths: 24,   requiredFor: 'none',       block: 'strong', warnDays: 60, notify: ['own', 'mgr', 'hr'],   sensitive: false, enabled: true },
+  { id: 'CT-04', name: 'Forklift',                        renewMonths: 36,   requiredFor: 'none',       block: 'warn',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-05', name: 'จป.เทคนิค',                       renewMonths: null, requiredFor: 'pos:POS-03', block: 'warn',   warnDays: 60, notify: ['own', 'hr'],          sensitive: false, enabled: true },
+  { id: 'CT-06', name: 'การติดตั้งนั่งร้าน',              renewMonths: 24,   requiredFor: 'none',       block: 'warn',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-07', name: 'จป.หัวหน้างาน',                   renewMonths: null, requiredFor: 'pos:POS-03', block: 'warn',   warnDays: 60, notify: ['own', 'hr'],          sensitive: false, enabled: true },
+  { id: 'CT-08', name: '4 ผู้',                           renewMonths: 24,   requiredFor: 'job:onsite', block: 'strong', warnDays: 60, notify: ['own', 'mgr', 'hr'],   sensitive: false, enabled: true },
+  { id: 'CT-09', name: 'อบรมที่สูง',                      renewMonths: 24,   requiredFor: 'job:onsite', block: 'strong', warnDays: 60, notify: ['own', 'mgr', 'hr'],   sensitive: false, enabled: true },
+  { id: 'CT-10', name: 'อบรม 6 ชม.',                      renewMonths: null, requiredFor: 'all',        block: 'warn',   warnDays: 60, notify: ['own', 'hr'],          sensitive: false, enabled: true },
+  { id: 'CT-11', name: 'อบรม 3 ชม.',                      renewMonths: null, requiredFor: 'none',       block: 'none',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-12', name: 'ตรวจสุขภาพทำงานที่สูง',           renewMonths: 12,   requiredFor: 'job:onsite', block: 'strong', warnDays: 30, notify: ['own', 'hr'],          sensitive: true,  enabled: true },
+  { id: 'CT-13', name: 'ตรวจประวัติอาชญากรรม',            renewMonths: null, requiredFor: 'all',        block: 'none',   warnDays: 30, notify: ['hr'],                 sensitive: true,  enabled: true },
+  { id: 'CT-14', name: 'ตรวจ 5 โรคและสารเสพติด',          renewMonths: 12,   requiredFor: 'all',        block: 'warn',   warnDays: 30, notify: ['own', 'hr'],          sensitive: true,  enabled: true },
+  /* แนะนำเพิ่ม 7 รายการ — ยังต้องให้ฝ่ายบุคคลยืนยันว่ารับเข้าลิสต์บริษัทไหม */
+  { id: 'CT-15', name: 'หนังสือรับรองช่างไฟฟ้าภายในอาคาร', renewMonths: 60,  requiredFor: 'none',       block: 'warn',   warnDays: 90, notify: ['own', 'hr'],          sensitive: false, enabled: true },
+  { id: 'CT-16', name: 'จป.บริหาร',                       renewMonths: null, requiredFor: 'none',       block: 'none',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-17', name: 'ความปลอดภัยไฟฟ้า 3 ชม.',          renewMonths: 24,   requiredFor: 'none',       block: 'warn',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true },
+  { id: 'CT-18', name: 'ดับเพลิงขั้นต้น',                 renewMonths: 12,   requiredFor: 'all',        block: 'warn',   warnDays: 60, notify: ['own', 'hr'],          sensitive: false, enabled: true },
+  { id: 'CT-19', name: 'ใบ กว. ไฟฟ้ากำลัง',               renewMonths: 60,   requiredFor: 'pos:POS-05', block: 'strong', warnDays: 90, notify: ['own', 'hr', 'exec'],  sensitive: false, enabled: true },
+  { id: 'CT-20', name: 'ขึ้นทะเบียนผู้ติดตั้งกับการไฟฟ้า', renewMonths: 12,  requiredFor: 'none',       block: 'warn',   warnDays: 90, notify: ['hr', 'exec'],         sensitive: false, enabled: true },
+  { id: 'CT-21', name: 'ใบอนุญาตขับรถ',                   renewMonths: 60,   requiredFor: 'pos:POS-11', block: 'warn',   warnDays: 60, notify: ['own'],                sensitive: false, enabled: true }
+];
+
+SS.CERT_BLOCK_LEVELS = [
+  { id: 'none',   name: 'ไม่กัน' },
+  { id: 'warn',   name: 'เตือนเฉย ๆ' },
+  { id: 'strong', name: 'เตือนแรง ผ่านได้ถ้าระบุเหตุผล' }
+];
+SS.CERT_NOTIFY = [
+  { id: 'own',  name: 'เจ้าของใบ' },
+  { id: 'mgr',  name: 'หัวหน้างาน' },
+  { id: 'hr',   name: 'ฝ่ายบุคคล' },
+  { id: 'exec', name: 'ผู้บริหาร' }
+];
+
+/* S11 · สถานะใบเซอร์ — เพิ่มค่าที่สี่ "ยังไม่เคยมี" เมื่อ 8 ก.ย. 2569
+   ค่านี้ไม่ได้มาจากตารางใบ ต้องเทียบกับรายการใบบังคับ */
+SS.CERT_STATUS = [
+  { id: 'valid',   name: 'ใช้ได้',      pill: 'pill-green' },
+  { id: 'soon',    name: 'ใกล้หมด',     pill: 'pill-yellow' },
+  { id: 'expired', name: 'หมดอายุ',     pill: 'pill-red' },
+  { id: 'missing', name: 'ยังไม่เคยมี', pill: 'pill-gray' }
+];
+
+/* สถานะพนักงาน (ACC-04) — ไม่ลบคน ใช้สถานะแทน */
+SS.EMP_STATUS = [
+  { id: 'probation', name: 'ทดลองงาน',   pill: 'pill-yellow', active: true },
+  { id: 'regular',   name: 'ประจำ',      pill: 'pill-green',  active: true },
+  { id: 'left',      name: 'พ้นสภาพ',    pill: 'pill-gray',   active: false },
+  { id: 'suspended', name: 'ระงับการใช้', pill: 'pill-red',    active: false }
+];
+
 SS.DEPTS = [
-  { id: 'ENG', name: 'วิศวกรรมและติดตั้ง' },
-  { id: 'OM',  name: 'ปฏิบัติการและบำรุงรักษา' },
-  { id: 'ADM', name: 'บริหารและธุรการ' }
+  { id: 'ENG',  name: 'วิศวกรรมและติดตั้ง',      divisionId: 'DIV-ENG', order: 1, enabled: true },
+  { id: 'OM',   name: 'ปฏิบัติการและบำรุงรักษา', divisionId: 'DIV-OPS', order: 2, enabled: true },
+  { id: 'ADM',  name: 'บริหารและธุรการ',         divisionId: 'DIV-SUP', order: 3, enabled: true },
+  { id: 'INST', name: 'แผนกติดตั้ง',             divisionId: 'DIV-OPS', order: 4, enabled: true },
+  { id: 'SRV',  name: 'แผนกสำรวจ',               divisionId: 'DIV-ENG', order: 5, enabled: true },
+  { id: 'STK',  name: 'แผนกคลังสินค้า',          divisionId: 'DIV-SUP', order: 6, enabled: true },
+  { id: 'MGT',  name: 'แผนกบริหาร',              divisionId: 'DIV-MGT', order: 7, enabled: true }
 ];
 
 /* ---------- lookup ---------- */
@@ -310,4 +417,10 @@ SS.leaveStatus = finder(SS.LEAVE_STATUS);
 SS.role        = finder(SS.ROLES);
 SS.dept        = finder(SS.DEPTS);
 SS.stopReason  = finder(SS.SITE_STOP_REASONS);
+SS.division    = finder(SS.DIVISIONS);
+SS.position    = finder(SS.POSITIONS);
+SS.posLevel    = finder(SS.POSITION_LEVELS);
+SS.certType    = finder(SS.CERT_TYPES);
+SS.certStatus  = finder(SS.CERT_STATUS);
+SS.empStatus   = finder(SS.EMP_STATUS);
 SS.name = function (fn, id) { var o = fn(id); return o ? o.name : (id || '—'); };

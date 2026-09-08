@@ -18,7 +18,18 @@ SS.app = (function () {
     team:       { title: 'ทีมของฉัน', sub: 'สถานะรายวันของลูกทีมทุกคน', icon: '👥', short: 'ทีม' },
     approvals:  { title: 'คิวอนุมัติ', sub: 'เรียงตามความเร่งด่วน ไม่ใช่เวลาที่ยื่น', icon: '✅', short: 'อนุมัติ' },
     dashboard:  { title: 'Dashboard', sub: 'ภาพรวมวันนี้ แตกตามสถานะรายวัน', icon: '📊', short: 'ภาพรวม' },
-    staff:      { title: 'ทะเบียนพนักงาน', sub: 'ของจำลอง — เจ้าของจริงคือเมนู Staff/Account', icon: '🧑', short: 'พนักงาน' },
+    staff:      { title: 'ทะเบียนพนักงาน', sub: 'A1 · กดที่แถวเพื่อเปิดโปรไฟล์สี่แท็บ', icon: '🧑', short: 'พนักงาน' },
+    staffgaps:  { title: 'ข้อมูลไม่ครบ', sub: 'A5 · หน้ารวมงานค้างของฝ่ายบุคคล', icon: '🩹', short: 'ข้อมูลขาด' },
+    viewas:     { title: 'ดูในมุมมองบทบาทอื่น', sub: 'A6 · อ่านอย่างเดียว ลง audit log ทุกครั้ง', icon: '👓', short: 'มุมมอง' },
+    myprofile:  { title: 'ข้อมูลของฉัน', sub: 'A4 · แก้ได้เฉพาะช่องของตัวเอง', icon: '🪪', short: 'โปรไฟล์' },
+    org:        { title: 'โครงสร้างองค์กร', sub: 'O1 · บริษัท → ฝ่าย → แผนก', icon: '🏢', short: 'องค์กร' },
+    positions:  { title: 'ตำแหน่งงาน', sub: 'O2 · ตำแหน่งไม่ให้สิทธิ์', icon: '💼', short: 'ตำแหน่ง' },
+    orgclean:   { title: 'จับคู่ข้อมูลเดิม', sub: 'O3 · ให้คนกาเอง ห้ามแปลงอัตโนมัติ', icon: '🧹', short: 'ล้างข้อมูล' },
+    orgchart:   { title: 'ผังองค์กร', sub: 'O4 · สลับผังตามฝ่ายและตามสายหัวหน้างาน', icon: '🌳', short: 'ผัง' },
+    orgissues:  { title: 'ความผิดปกติของโครงสร้าง', sub: 'O5 · เรื่องโครงสร้าง ไม่ใช่ข้อมูลรายคน', icon: '🔧', short: 'ผิดปกติ' },
+    certs:      { title: 'ใบรับรองและเอกสาร', sub: 'C1 · ใช้ได้ · ใกล้หมด · หมดอายุ · ยังไม่มี', icon: '📜', short: 'ใบเซอร์' },
+    certtypes:  { title: 'ชนิดใบรับรอง', sub: 'C5 · 21 ชนิด ตั้งค่าได้', icon: '🗂', short: 'ชนิดใบ' },
+    staffops:   { title: 'ตารางตั้งค่ารายคน', sub: 'กะ · ยกเว้นเช็คอิน · ผู้อนุมัติสำรอง · วันผ่านประเมิน', icon: '⚙', short: 'ตั้งค่าคน' },
     workcal:    { title: 'ปฏิทินทำงานรายปี', sub: 'คลิกที่วันเพื่อสลับประเภท', icon: '🗓', short: 'ปฏิทินงาน' },
     settings:   { title: 'ตั้งค่า', sub: 'ทุกค่าแก้ได้จากที่นี่ ไม่มีค่าไหน hardcode', icon: '⚙', short: 'ตั้งค่า' },
     tables:     { title: 'ทะเบียนของกลาง', sub: 'S10 · S17 · S19 · S20 และตารางอำนาจอนุมัติ', icon: '🗃', short: 'ทะเบียน' },
@@ -27,16 +38,20 @@ SS.app = (function () {
   };
 
   var NAV = {
-    employee: [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar']], ['UAT', ['specmap']]],
-    manager:  [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar']],
-               ['ทีมของฉัน', ['team', 'approvals', 'dashboard']], ['UAT', ['specmap']]],
-    hr:       [['ของฉัน', ['checkin', 'mysummary', 'myleaves', 'calendar']],
-               ['งานฝ่ายบุคคล', ['dashboard', 'approvals', 'staff', 'workcal']],
-               ['ของกลางและตั้งค่า', ['tables', 'settings', 'audit']], ['UAT', ['specmap']]],
+    employee: [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar', 'myprofile']], ['UAT', ['specmap']]],
+    manager:  [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar', 'myprofile']],
+               ['ทีมของฉัน', ['team', 'approvals', 'dashboard', 'certs']], ['UAT', ['specmap']]],
+    hr:       [['ของฉัน', ['checkin', 'mysummary', 'myleaves', 'calendar', 'myprofile']],
+               ['งานฝ่ายบุคคล', ['dashboard', 'approvals', 'staff', 'staffgaps', 'certs', 'workcal']],
+               ['องค์กรและตำแหน่ง', ['org', 'positions', 'orgclean', 'orgchart', 'orgissues']],
+               ['ของกลางและตั้งค่า', ['certtypes', 'tables', 'staffops', 'settings', 'audit', 'viewas']], ['UAT', ['specmap']]],
     exec:     [['ภาพรวม', ['dashboard', 'approvals', 'calendar', 'team']],
-               ['ของกลาง', ['tables', 'audit']], ['UAT', ['specmap']]],
-    admin:    [['ดูแลข้อมูล', ['staff', 'workcal', 'tables', 'settings']],
-               ['ตรวจสอบ', ['audit', 'dashboard']], ['UAT', ['specmap']]]
+               ['องค์กร', ['orgchart', 'orgissues', 'certs']],
+               ['ของกลาง', ['tables', 'audit', 'viewas']], ['UAT', ['specmap']]],
+    admin:    [['ดูแลข้อมูล', ['staff', 'staffgaps', 'staffops', 'workcal', 'tables', 'settings']],
+               ['องค์กรและตำแหน่ง', ['org', 'positions', 'orgclean', 'orgchart', 'orgissues']],
+               ['ใบรับรอง', ['certs', 'certtypes']],
+               ['ตรวจสอบ', ['audit', 'dashboard', 'viewas']], ['UAT', ['specmap']]]
   };
 
   var current = 'checkin';

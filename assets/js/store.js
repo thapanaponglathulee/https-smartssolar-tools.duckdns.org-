@@ -94,6 +94,13 @@ SS.store = (function () {
       jobTypes: JSON.parse(JSON.stringify(SS.JOB_TYPES)),
       travelTypes: JSON.parse(JSON.stringify(SS.TRAVEL_TYPES)),
       stopReasons: JSON.parse(JSON.stringify(SS.SITE_STOP_REASONS)),   /* S21 · CI-26 */
+      divisions: JSON.parse(JSON.stringify(SS.DIVISIONS)),             /* O1 */
+      depts: JSON.parse(JSON.stringify(SS.DEPTS)),                     /* O1 */
+      positions: JSON.parse(JSON.stringify(SS.POSITIONS)),             /* O2 */
+      certTypes: JSON.parse(JSON.stringify(SS.CERT_TYPES)),            /* S12 · C5 */
+      certs: SS.SEED_CERTS(T),                                         /* C2 · C3 */
+      sensitive: SS.SEED_SENSITIVE(T),                                 /* C4 · PDPA */
+      certExemptions: [],                                              /* C6 */
       authority: JSON.parse(JSON.stringify(SS.SEED_AUTHORITY)),
       calendar: SS.SEED_CAL_CACHE,
       balances: SS.SEED_BALANCES(y),
@@ -225,6 +232,149 @@ SS.store = (function () {
       log('แก้ไขเช็คอิน', id, JSON.stringify(before) + ' → ' + JSON.stringify(patch), before);
       emit();
       return { ok: true, needApproval: false };
+    },
+
+    /* ==================================================================
+       O1 · O2 · โครงสร้างองค์กรและตำแหน่งงาน
+       ไม่ลบ ใช้ปิดการใช้งานแทน เพราะข้อมูลเก่าอ้างอยู่
+       ================================================================== */
+    orgCount: function (kind, id) {
+      return state.employees.filter(function (e) {
+        if (e.isTest || !e.active) return false;
+        if (kind === 'dept') return e.dept === id;
+        if (kind === 'division') {
+          var d = state.depts.filter(function (x) { return x.id === e.dept; })[0];
+          return d && d.divisionId === id;
+        }
+        if (kind === 'position') return e.positionId === id;
+        return false;
+      }).length;
+    },
+    addOrgUnit: function (kind, data) {
+      var list = kind === 'division' ? state.divisions : state.depts;
+      if (!String(data.name || '').trim()) return { ok: false, msg: 'กรุณากรอกชื่อ' };
+      var id = (kind === 'division' ? 'DIV-' : 'DEP-') + (list.length + 1) + Date.now().toString().slice(-3);
+      var row = { id: id, name: data.name.trim(), order: list.length + 1, enabled: true };
+      if (kind === 'dept') row.divisionId = data.divisionId || null;
+      list.push(row);
+      log(kind === 'division' ? 'เพิ่มฝ่าย' : 'เพิ่มแผนก', id, row.name);
+      emit();
+      return { ok: true, row: row };
+    },
+    renameOrgUnit: function (kind, id, name) {
+      var list = kind === 'division' ? state.divisions : state.depts;
+      var row = list.filter(function (x) { return x.id === id; })[0];
+      if (!row) return { ok: false };
+      if (!String(name || '').trim()) return { ok: false, msg: 'กรุณากรอกชื่อ' };
+      log('เปลี่ยนชื่อ' + (kind === 'division' ? 'ฝ่าย' : 'แผนก'), id, row.name + ' → ' + name);
+      row.name = name.trim(); emit();
+      return { ok: true };
+    },
+    moveDept: function (id, divisionId) {
+      var row = state.depts.filter(function (x) { return x.id === id; })[0];
+      if (!row) return { ok: false };
+      log('ย้ายแผนก', id, SS.name(SS.division, row.divisionId) + ' → ' + SS.name(SS.division, divisionId));
+      row.divisionId = divisionId; emit();
+      return { ok: true };
+    },
+    /* ปิดฝ่าย/แผนกที่ยังมีคนอยู่ไม่ได้ ต้องย้ายคนออกก่อน */
+    disableOrgUnit: function (kind, id) {
+      var list = kind === 'division' ? state.divisions : state.depts;
+      var row = list.filter(function (x) { return x.id === id; })[0];
+      if (!row) return { ok: false };
+      var n = api.orgCount(kind, id);
+      if (n) return { ok: false, msg: 'ปิดไม่ได้ ยังมีคนอยู่อีก ' + n + ' คน — ต้องย้ายคนออกก่อน' };
+      row.enabled = !row.enabled;
+      log(row.enabled ? 'เปิดใช้งาน' : 'ปิดการใช้งาน', id, row.name);
+      emit();
+      return { ok: true };
+    },
+    addPosition: function (data) {
+      if (!String(data.name || '').trim()) return { ok: false, msg: 'กรุณากรอกชื่อตำแหน่ง' };
+      var id = 'POS-' + (state.positions.length + 1) + Date.now().toString().slice(-3);
+      state.positions.push({ id: id, name: data.name.trim(), level: data.level || 'ops', enabled: true });
+      log('เพิ่มตำแหน่งงาน', id, data.name);
+      emit();
+      return { ok: true };
+    },
+    togglePosition: function (id) {
+      var row = state.positions.filter(function (x) { return x.id === id; })[0];
+      if (!row) return { ok: false };
+      var n = api.orgCount('position', id);
+      if (row.enabled && n) return { ok: false, msg: 'ปิดไม่ได้ ยังมีคนถือตำแหน่งนี้อีก ' + n + ' คน' };
+      row.enabled = !row.enabled;
+      log(row.enabled ? 'เปิดใช้งานตำแหน่ง' : 'ปิดการใช้งานตำแหน่ง', id, row.name);
+      emit();
+      return { ok: true };
+    },
+
+    /* ==================================================================
+       C1–C6 · ใบรับรองและเอกสารพนักงาน
+       ต่ออายุ = เพิ่มฉบับใหม่ ไม่ใช่ทับของเก่า · ไม่มีการลบ
+       ================================================================== */
+    addCert: function (data) {
+      var t = SS.certType(data.typeId);
+      if (!t) return { ok: false, msg: 'กรุณาเลือกชนิดใบ' };
+      if (t.sensitive) return { ok: false, msg: 'ชนิดใบนี้เป็นเอกสารอ่อนไหว ต้องใช้ฟอร์มบันทึกผลตรวจ (C4)' };
+      if (!data.empId) return { ok: false, msg: 'กรุณาเลือกพนักงาน' };
+      if (!data.issued) return { ok: false, msg: 'กรุณากรอกวันที่ออก' };
+      var prev = state.certs.filter(function (c) { return c.empId === data.empId && c.typeId === data.typeId; });
+      var id = 'CF-' + (2000 + state.certs.length + 1);
+      var rec = {
+        id: id, empId: data.empId, typeId: data.typeId,
+        issuer: data.issuer || '', certNo: data.certNo || '',
+        issued: data.issued, expiry: data.expiry || null,
+        attachment: data.attachment || '', note: data.note || '',
+        version: prev.length + 1, supersededBy: null,
+        by: state.currentUserId, at: new Date().toISOString()
+      };
+      state.certs.push(rec);
+      log(prev.length ? 'ต่ออายุใบรับรอง' : 'เพิ่มใบรับรอง', id,
+          SS.name(SS.certType, data.typeId) + ' · ' + (employee(data.empId) || {}).name +
+          (rec.expiry ? ' · หมดอายุ ' + rec.expiry : ' · ไม่หมดอายุ') +
+          (rec.attachment ? '' : ' · ยังไม่แนบไฟล์'));
+      emit();
+      return { ok: true, rec: rec };
+    },
+    /* C4 · เอกสารอ่อนไหว — เก็บได้เฉพาะ ผ่าน/ไม่ผ่าน + วันที่ + ครบกำหนดถัดไป */
+    addSensitive: function (data) {
+      var t = SS.certType(data.typeId);
+      if (!t || !t.sensitive) return { ok: false, msg: 'รายการนี้ไม่ใช่เอกสารอ่อนไหว' };
+      if (!data.empId) return { ok: false, msg: 'กรุณาเลือกพนักงาน' };
+      if (data.pass === null || data.pass === undefined) return { ok: false, msg: 'กรุณาเลือกผลตรวจ' };
+      if (!data.checked) return { ok: false, msg: 'กรุณากรอกวันที่ตรวจ' };
+      var rec = {
+        id: 'SD-' + (3000 + state.sensitive.length + 1), empId: data.empId, typeId: data.typeId,
+        pass: !!data.pass, checked: data.checked, next: data.next || null,
+        by: state.currentUserId, at: new Date().toISOString()
+      };
+      state.sensitive.push(rec);
+      /* บันทึกแค่ว่ามีการบันทึกผล ไม่เขียนผลลงใน detail ของ audit ที่ทุกบทบาทเห็น */
+      log('บันทึกผลตรวจ (เอกสารอ่อนไหว)', rec.id,
+          SS.name(SS.certType, data.typeId) + ' · ' + (employee(data.empId) || {}).name + ' · ผลถูกปกปิดในบันทึกนี้');
+      emit();
+      return { ok: true, rec: rec };
+    },
+    /* ทุกครั้งที่ "เปิดดู" เอกสารอ่อนไหว ต้องลง audit log ไม่ใช่แค่ตอนแก้ */
+    logSensitiveView: function (empId, typeId) {
+      log('เปิดดูเอกสารอ่อนไหว', empId,
+          SS.name(SS.certType, typeId) + ' ของ ' + (employee(empId) || {}).name);
+      emit();
+    },
+    /* C6 · ยกเว้นให้ลงไซต์ทั้งที่ใบบังคับหมดอายุ */
+    addCertExemption: function (data) {
+      if (!String(data.reason || '').trim()) return { ok: false, msg: 'ต้องกรอกเหตุผลที่ยังให้ลงไซต์' };
+      var rec = {
+        id: 'EX-' + (4000 + state.certExemptions.length + 1),
+        empId: data.empId, typeIds: data.typeIds || [], date: SS.d.today(),
+        reason: String(data.reason).trim(), by: state.currentUserId, at: new Date().toISOString()
+      };
+      state.certExemptions.push(rec);
+      log('ยกเว้นใบบังคับที่หมดอายุ', rec.id,
+          (employee(data.empId) || {}).name + ' · ' +
+          rec.typeIds.map(function (t) { return SS.name(SS.certType, t); }).join(', ') + ' · ' + rec.reason);
+      emit();
+      return { ok: true, rec: rec };
     },
 
     /* ---------- CI-25 · แวะไซต์เพิ่ม ----------

@@ -263,6 +263,8 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
             U.note('mock', 'ข้อความนี้แก้ได้ที่หน้าตั้งค่า และขึ้นครั้งเดียวเท่านั้น — ถ้าไม่อนุญาต ยังเช็คอินได้ตามปกติ ระบบบันทึกว่า "ไม่มีพิกัด"'),
           buttons: [{ label: 'รับทราบและเช็คอิน', cls: 'btn-accent', onClick: function () {
             S.markGeoNotice(); doCheckIn();
+            /* doCheckIn อาจเปิดกล่อง C6 ต่อทันที — ห้ามให้ ui.modal ปิดกล่องใหม่ทิ้ง */
+            return false;
           } }]
         });
         return;
@@ -271,7 +273,14 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
     }
 
     function doCheckIn() {
-      grabGeo(function (g) { finish(g.ok ? { lat: g.lat, lng: g.lng, acc: g.acc } : { lat: null, why: g.why }); });
+      /* C6 · ใบบังคับหมดอายุแล้วยังจะลงไซต์ — เด้งได้เฉพาะตอนเช็คอินเข้าไซต์ในเฟสนี้ */
+      var jt = SS.jobType(state.jobType);
+      var gate = (jt && jt.requireSite && SS.certGate) ? SS.certGate : null;
+      if (gate) { gate(me.id, run); return; }
+      run();
+      function run() {
+        grabGeo(function (g) { finish(g.ok ? { lat: g.lat, lng: g.lng, acc: g.acc } : { lat: null, why: g.why }); });
+      }
     }
 
     function finish(geo) {

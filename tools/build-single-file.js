@@ -17,7 +17,7 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 
 const html = read('index.html');
 const css = read('assets/css/app.css');
-const scripts = ['masters', 'seed', 'core', 'store', 'ui', 'views-emp', 'views-team', 'views-admin', 'app']
+const scripts = ['masters', 'seed', 'core', 'store', 'ui', 'views-emp', 'views-team', 'views-admin', 'views-staff', 'app']
   .map(n => '/* ===== ' + n + '.js ===== */\n' + read('assets/js/' + n + '.js'));
 
 /* เอาเฉพาะเนื้อใน <body> */

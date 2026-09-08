@@ -476,6 +476,124 @@ SS.core = (function () {
   }
 
   /* ======================================================================
+     S11 · สถานะใบรับรอง (C1 · C2)
+     สี่ค่า — ใช้ได้ · ใกล้หมด · หมดอายุ · ยังไม่เคยมี
+     ค่าสุดท้ายไม่ได้มาจากตารางใบ ต้องเทียบกับรายการใบบังคับ
+     ====================================================================== */
+  function certStatus(cert) {
+    if (!cert) return 'missing';
+    if (!cert.expiry) return 'valid';                       /* ไม่หมดอายุ */
+    var t = SS.certType(cert.typeId) || {};
+    var today = SS.d.today();
+    if (cert.expiry < today) return 'expired';
+    if (SS.d.diff(today, cert.expiry) <= (+t.warnDays || 60)) return 'soon';
+    return 'valid';
+  }
+
+  /* ใบล่าสุดของคนนั้นในชนิดนั้น — ต่ออายุคือเพิ่มฉบับใหม่ ฉบับเก่ายังอยู่เป็นประวัติ */
+  function latestCert(empId, typeId) {
+    var rows = db().certs.filter(function (c) { return c.empId === empId && c.typeId === typeId; });
+    if (!rows.length) return null;
+    return rows.slice().sort(function (a, b) {
+      if (a.issued !== b.issued) return a.issued < b.issued ? 1 : -1;
+      return (b.version || 1) - (a.version || 1);
+    })[0];
+  }
+  function certHistory(empId, typeId) {
+    return db().certs.filter(function (c) { return c.empId === empId && c.typeId === typeId; })
+      .sort(function (a, b) { return a.issued < b.issued ? 1 : -1; });
+  }
+  function latestSensitive(empId, typeId) {
+    var rows = db().sensitive.filter(function (c) { return c.empId === empId && c.typeId === typeId; });
+    if (!rows.length) return null;
+    return rows.slice().sort(function (a, b) { return a.checked < b.checked ? 1 : -1; })[0];
+  }
+
+  /* ชนิดใบที่บังคับกับคนนี้ — 'all' · 'job:<id>' ตามประเภทงานตั้งต้น · 'pos:<id>' ตามตำแหน่ง */
+  function requiredCertTypes(empId) {
+    var emp = SS.store.employee(empId);
+    if (!emp) return [];
+    return db().certTypes.filter(function (t) {
+      if (!t.enabled) return false;
+      if (t.requiredFor === 'all') return true;
+      if (t.requiredFor.indexOf('job:') === 0) return emp.defaultJobType === t.requiredFor.slice(4);
+      if (t.requiredFor.indexOf('pos:') === 0) return emp.positionId === t.requiredFor.slice(4);
+      return false;
+    });
+  }
+
+  /* สรุปใบของคนหนึ่ง — ใบที่มี + ใบบังคับที่ยังไม่เคยมี */
+  function certsOf(empId) {
+    var out = [], seen = {};
+    db().certTypes.forEach(function (t) {
+      var rec = t.sensitive ? latestSensitive(empId, t.id) : latestCert(empId, t.id);
+      if (!rec) return;
+      seen[t.id] = 1;
+      var st;
+      if (t.sensitive) {
+        st = !rec.next ? 'valid'
+           : rec.next < SS.d.today() ? 'expired'
+           : SS.d.diff(SS.d.today(), rec.next) <= (+t.warnDays || 30) ? 'soon' : 'valid';
+      } else { st = certStatus(rec); }
+      out.push({ type: t, rec: rec, status: st, sensitive: !!t.sensitive });
+    });
+    /* ใบบังคับที่ยังไม่เคยมี — การ์ดที่สำคัญที่สุดและมักถูกลืม */
+    requiredCertTypes(empId).forEach(function (t) {
+      if (seen[t.id]) return;
+      out.push({ type: t, rec: null, status: 'missing', sensitive: !!t.sensitive });
+    });
+    return out;
+  }
+
+  /* ใบบังคับที่หมดอายุแล้วและมีระดับการกัน — ใช้ตอนเช็คอินเข้าไซต์ (C6) */
+  function blockingCerts(empId) {
+    return certsOf(empId).filter(function (c) {
+      return (c.status === 'expired' || c.status === 'missing') && c.type.block !== 'none';
+    });
+  }
+  function exemptedToday(empId) {
+    return db().certExemptions.filter(function (x) {
+      return x.empId === empId && x.date === SS.d.today();
+    })[0] || null;
+  }
+
+  /* ======================================================================
+     O5 · ความผิดปกติของโครงสร้างองค์กร
+     ====================================================================== */
+  function orgIssues() {
+    var emps = SS.store.counted();
+    function cycle(e) {
+      var seen = {}, cur = e, guard = 0;
+      while (cur && cur.managerId && guard++ < 50) {
+        if (seen[cur.id]) return true;
+        seen[cur.id] = 1;
+        cur = SS.store.employee(cur.managerId);
+        if (cur && cur.id === e.id) return true;
+      }
+      return false;
+    }
+    var noPos = emps.filter(function (e) { return !e.positionId; });
+    var noDept = emps.filter(function (e) { return !e.dept; });
+    var noMgr = emps.filter(function (e) { return !e.managerId; });
+    var deadMgr = emps.filter(function (e) {
+      var m = e.managerId ? SS.store.employee(e.managerId) : null;
+      return m && !m.active;
+    });
+    var cycles = emps.filter(cycle);
+    var emptyDiv = db().divisions.filter(function (d) {
+      return d.enabled && !SS.store.orgCount('division', d.id);
+    });
+    return [
+      { key: 'pos',   label: 'คนที่ยังไม่มีตำแหน่ง',              rows: noPos,   unit: 'คน' },
+      { key: 'dept',  label: 'คนที่ยังไม่ได้จัดแผนก',             rows: noDept,  unit: 'คน' },
+      { key: 'mgr',   label: 'คนที่ไม่มีหัวหน้างาน',               rows: noMgr,   unit: 'คน' },
+      { key: 'dead',  label: 'หัวหน้างานที่พ้นสภาพแต่ยังมีลูกทีม',  rows: deadMgr, unit: 'คน' },
+      { key: 'cycle', label: 'สายหัวหน้างานที่วนกลับมาหาตัวเอง',    rows: cycles,  unit: 'จุด' },
+      { key: 'div',   label: 'ฝ่ายที่ไม่มีใครอยู่เลย',             rows: emptyDiv, unit: 'ฝ่าย' }
+    ];
+  }
+
+  /* ======================================================================
      CAL-02 · แถบตอบทันที "เสาร์นี้ทำงานไหม"
      ====================================================================== */
   function quickBar(empId) {
@@ -503,6 +621,9 @@ SS.core = (function () {
     mealCount: mealCount, rateAt: rateAt, allowanceOf: allowanceOf,
     sitesFor: sitesFor, travelsFor: travelsFor, defaultTravelFor: defaultTravelFor,
     mealFlag: mealFlag, visitFlag: visitFlag, manDay: manDay, distanceOf: distanceOf,
-    quickBar: quickBar
+    certStatus: certStatus, latestCert: latestCert, certHistory: certHistory,
+    latestSensitive: latestSensitive, requiredCertTypes: requiredCertTypes,
+    certsOf: certsOf, blockingCerts: blockingCerts, exemptedToday: exemptedToday,
+    orgIssues: orgIssues, quickBar: quickBar
   };
 })();
