@@ -87,18 +87,18 @@ SS.TRAVEL_TYPES = [
    status: plan แผนงาน · active กำลังดำเนินการ · done เสร็จสิ้น/ส่งมอบแล้ว
    ========================================================================== */
 SS.PROJECTS = [
-  { id: 'PRJ-CRR',   code: 'CRR',          name: 'CRR Solar Farm (ฉะเชิงเทรา)',       status: 'active' },
-  { id: 'PRJ-MVP',   code: 'MVP',          name: 'MVP Rooftop 1.2 MWp (สมุทรปราการ)', status: 'active' },
-  { id: 'PRJ-TPC2',  code: 'TPC2',         name: 'TPC2 Carport (ระยอง)',              status: 'active' },
-  { id: 'PRJ-SWF',   code: 'SWF',          name: 'SWF Floating Solar (สระบุรี)',      status: 'active' },
-  { id: 'PRJ-HYS',   code: 'HYS',          name: 'HYS Factory Rooftop (ชลบุรี)',      status: 'done'   },
-  { id: 'PRJ-HYATT', code: 'HYATT',        name: 'HYATT Hotel Rooftop (กรุงเทพฯ)',    status: 'done'   },
-  { id: 'PRJ-LAG',   code: 'LAGUNA',       name: 'LAGUNA Resort (ภูเก็ต)',            status: 'done'   },
-  { id: 'PRJ-GAL',   code: 'GALLERY',      name: 'GALLERY Community Mall (นนทบุรี)',  status: 'done'   },
-  { id: 'PRJ-OPK',   code: 'OPEN KITCHEN', name: 'OPEN KITCHEN Central Kitchen',      status: 'done'   },
-  { id: 'PRJ-NECA',  code: 'NECA',         name: 'NECA Warehouse (สมุทรสาคร)',        status: 'plan'   },
-  { id: 'PRJ-CASIA', code: 'Casia',        name: 'Casia Industrial (ปราจีนบุรี)',     status: 'plan'   },
-  { id: 'PRJ-OFF',   code: 'Office',       name: 'สำนักงานใหญ่ ปทุมธานี',             status: 'active' }
+  { id: 'PRJ-CRR',   code: 'CRR',          name: 'CRR Solar Farm (ฉะเชิงเทรา)',       status: 'active' , lat: 13.6904, lng: 101.0779 },
+  { id: 'PRJ-MVP',   code: 'MVP',          name: 'MVP Rooftop 1.2 MWp (สมุทรปราการ)', status: 'active' , lat: 13.5990, lng: 100.6010 },
+  { id: 'PRJ-TPC2',  code: 'TPC2',         name: 'TPC2 Carport (ระยอง)',              status: 'active' , lat: 12.6810, lng: 101.2750 },
+  { id: 'PRJ-SWF',   code: 'SWF',          name: 'SWF Floating Solar (สระบุรี)',      status: 'active' , lat: 14.5290, lng: 100.9100 },
+  { id: 'PRJ-HYS',   code: 'HYS',          name: 'HYS Factory Rooftop (ชลบุรี)',      status: 'done'   , lat: 13.3611, lng: 100.9847 },
+  { id: 'PRJ-HYATT', code: 'HYATT',        name: 'HYATT Hotel Rooftop (กรุงเทพฯ)',    status: 'done'   , lat: 13.7440, lng: 100.5480 },
+  { id: 'PRJ-LAG',   code: 'LAGUNA',       name: 'LAGUNA Resort (ภูเก็ต)',            status: 'done'   , lat: 8.0000, lng: 98.2960 },
+  { id: 'PRJ-GAL',   code: 'GALLERY',      name: 'GALLERY Community Mall (นนทบุรี)',  status: 'done'   , lat: 13.8620, lng: 100.5140 },
+  { id: 'PRJ-OPK',   code: 'OPEN KITCHEN', name: 'OPEN KITCHEN Central Kitchen',      status: 'done'   , lat: 13.7500, lng: 100.5300 },
+  { id: 'PRJ-NECA',  code: 'NECA',         name: 'NECA Warehouse (สมุทรสาคร)',        status: 'plan'   , lat: 13.5470, lng: 100.2740 },
+  { id: 'PRJ-CASIA', code: 'Casia',        name: 'Casia Industrial (ปราจีนบุรี)',     status: 'plan'   , lat: 14.0510, lng: 101.3700 },
+  { id: 'PRJ-OFF',   code: 'Office',       name: 'สำนักงานใหญ่ ปทุมธานี',             status: 'active' , lat: 14.0208, lng: 100.5250 }
 ];
 
 /* ==========================================================================
@@ -245,9 +245,10 @@ SS.DEFAULT_PARAMS = {
   expiryRule: 'dec31-next', /* ทั้งลาชดเชยและพักร้อนสะสม */
   compWarnFrom: '10-01',    /* เตือนตั้งแต่ 1 ต.ค. แล้วซ้ำที่ 60 และ 30 วัน */
 
-  /* CI-06 · CI-12 */
+  /* CI-06 · CI-12 · CI-22 */
   selfEditHours: 12,
   notifyTime: '09:00',
+  historyPageSize: 31,      /* จำนวนวันที่แสดงต่อหน้าในประวัติเช็คอิน — ห้ามเป็นค่าตายในโค้ด */
 
   /* BR-09 · LV-02 */
   quotaCycle: 'calendar',   /* ปีปฏิทิน 1 ม.ค. – 31 ธ.ค. */
@@ -265,6 +266,12 @@ SS.DEFAULT_PARAMS = {
 
   /* CI-19 · FB-6 */
   officeOvertimeMeals: 0,   /* ⚠ ยังไม่เคาะ — ประจำออฟฟิศอยู่หน้างานนอกเวลาได้กี่มื้อ รอผู้บริหารยืนยัน */
+
+  /* CI-25 · CI-28 */
+  maxVisitsPerDay: 4,       /* จำนวนไซต์ที่แวะเพิ่มได้ต่อวัน · ตั้ง 0 = ปิดฟีเจอร์ทั้งปุ่ม */
+  siteRadiusMeters: 500,    /* รัศมีที่ถือว่าอยู่หน้างาน — ใช้คิดระยะในรายงานเท่านั้น ห้ามใช้บล็อกการเช็คอิน */
+  geoNotice: 'ระบบจะบันทึกพิกัดที่ตั้งตอนกดเช็คอิน เพื่อใช้เป็นหลักฐานประกอบการคำนวณค่าอาหารเท่านั้น ' +
+             'ไม่ได้ใช้ติดตามตัวพนักงาน และไม่มีการแสดงระยะทางให้พนักงานเห็น',
 
   /* S17 · ALW-02 */
   defaultMealRate: 40,      /* อัตราเริ่มต้นของบริษัท ใช้เมื่อไซต์ยังไม่ตั้งค่า */

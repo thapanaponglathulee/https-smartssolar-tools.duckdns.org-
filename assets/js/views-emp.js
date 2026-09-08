@@ -91,8 +91,12 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
           (ci.projectId || ci.otherPlace
             ? '<button class="btn btn-ghost" id="btnStop">' + (ci.siteStop ? 'แก้ไขการหยุดงานที่ไซต์' : 'หยุดงานที่ไซต์') + '</button>'
             : '') +
+          /* CI-25 · ตั้งพารามิเตอร์เป็น 0 แล้วปุ่มหายไปทั้งปุ่ม */
+          (ci.projectId && (+S.get().params.maxVisitsPerDay || 0)
+            ? '<button class="btn btn-ghost" id="btnVisit">แวะไซต์เพิ่ม</button>' : '') +
           (ci.projectId ? '<button class="btn btn-accent" id="btnAllow">เบิกเบี้ยเลี้ยงของวันนี้</button>' : '') +
         '</div>' +
+        visitList(ci) +
         '<div class="hint" style="margin-top:9px">ปุ่ม "บันทึกชั่วโมง OT" คือที่เดียวที่เก็บชั่วโมงและแปลงเป็นวันชดเชย ' +
         'ต้องยื่นแยกจึงจะได้วัน · ตัวเลือก "อยู่หน้างานนอกเวลา" ในฟอร์มเช็คอินตอบเรื่องค่าอาหารอย่างเดียว ' + U.ref(['CI-10', 'CI-19']) + '</div>' +
         /* CI-03 · ห้ามมีจำนวนเงินบนปุ่มหรือที่ใดในหน้านี้ */
@@ -109,6 +113,15 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       $('#btnEditCi').addEventListener('click', function () { editCheckinModal(ci); });
       $('#btnOT').addEventListener('click', function () { otModal(me); });
       if ($('#btnStop')) $('#btnStop').addEventListener('click', function () { siteStopModal(ci); });
+      if ($('#btnVisit')) $('#btnVisit').addEventListener('click', function () { visitModal(ci); });
+      $$('[data-vsdel]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var id = b.getAttribute('data-vsdel');
+          U.confirm('ลบรายการแวะไซต์', '<p>ลบแล้วยังเหลือร่องรอยใน audit log เสมอ</p>', function () {
+            S.removeVisit(ci.id, id, 'ลบโดยเจ้าของรายการ'); U.toast('ลบรายการแวะไซต์แล้ว', 'ok'); SS.app.refresh();
+          }, 'ลบ', 'btn-danger');
+        });
+      });
       if ($('#btnAllow')) $('#btnAllow').addEventListener('click', function () {
         U.modal({
           title: 'เบิกเบี้ยเลี้ยงของวันนี้',
@@ -218,12 +231,52 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       $('#btnCi').addEventListener('click', submit);
     }
 
+    /* CI-28 · ขอพิกัดตอนกดเช็คอิน
+       ปฏิเสธ จับไม่ได้ หรือช้าเกิน 5 วินาที → เช็คอินผ่านตามปกติ บันทึกว่า "ไม่มีพิกัด"
+       ห้ามบล็อก ห้ามเตือนพนักงาน ห้ามแสดงตัวเลขระยะให้พนักงานเห็น */
+    function grabGeo(done) {
+      if (!navigator.geolocation) return done({ ok: false, why: 'เครื่องไม่รองรับ' });
+      var settled = false;
+      var timer = setTimeout(function () {
+        if (settled) return; settled = true; done({ ok: false, why: 'เกิน 5 วินาที' });
+      }, 5000);
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        if (settled) return; settled = true; clearTimeout(timer);
+        done({ ok: true, lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) });
+      }, function () {
+        if (settled) return; settled = true; clearTimeout(timer);
+        done({ ok: false, why: 'ผู้ใช้ไม่อนุญาต' });
+      }, { timeout: 5000, maximumAge: 60000 });
+    }
+
     function submit() {
       var jt = SS.jobType(state.jobType);
       if (jt.requireSite && !state.projectId) return U.toast('กรุณาเลือกไซต์งาน', 'err');
       if (state.projectId === '__other' && !state.otherPlace.trim()) return U.toast('กรุณาพิมพ์ชื่อสถานที่', 'err');
       if (!state.detail.trim()) return U.toast('กรุณากรอกรายละเอียดงานที่ทำ', 'err');
+
+      /* CI-28 · ประกาศเรื่องการเก็บพิกัด ขึ้นครั้งเดียวตอนใช้ครั้งแรก ไม่ใช่ถามทุกวัน */
+      if (!S.geoNoticeSeen()) {
+        U.modal({
+          title: 'ก่อนเช็คอินครั้งแรก',
+          body: '<p style="font-size:14px;line-height:1.7">' + esc(S.get().params.geoNotice) + '</p>' +
+            U.note('mock', 'ข้อความนี้แก้ได้ที่หน้าตั้งค่า และขึ้นครั้งเดียวเท่านั้น — ถ้าไม่อนุญาต ยังเช็คอินได้ตามปกติ ระบบบันทึกว่า "ไม่มีพิกัด"'),
+          buttons: [{ label: 'รับทราบและเช็คอิน', cls: 'btn-accent', onClick: function () {
+            S.markGeoNotice(); doCheckIn();
+          } }]
+        });
+        return;
+      }
+      doCheckIn();
+    }
+
+    function doCheckIn() {
+      grabGeo(function (g) { finish(g.ok ? { lat: g.lat, lng: g.lng, acc: g.acc } : { lat: null, why: g.why }); });
+    }
+
+    function finish(geo) {
       var r = S.checkIn({
+        geo: geo,
         empId: me.id, jobType: state.jobType,
         projectId: state.projectId === '__other' ? null : state.projectId,
         otherPlace: state.projectId === '__other' ? state.otherPlace.trim() : '',
@@ -274,6 +327,82 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
           } }
       ]
     });
+  }
+
+  /* ==================================================================
+     CI-25 · ไปหลายไซต์ในวันเดียว — ไซต์หลักหนึ่ง แวะเพิ่มได้
+     วันยังเป็นหน่วยเดียว · การแวะไม่สร้างวันใหม่ ไม่เพิ่มมื้อ ไม่เพิ่มวันชดเชย
+     ================================================================== */
+  function visitList(ci) {
+    var vs = ci.visits || [];
+    if (!vs.length) return '';
+    var fl = C.visitFlag(ci);
+    return '<div class="sect">ไซต์ที่แวะเพิ่มวันนี้ ' + vs.length + ' แห่ง</div>' +
+      '<div class="tw"><table class="t"><thead><tr><th>เวลา</th><th>ไซต์</th><th>ประเภทงาน</th><th>งานที่ทำ</th><th></th></tr></thead><tbody>' +
+      vs.map(function (v) {
+        return '<tr><td>' + esc(v.time) + '</td><td>' + esc(SS.name(SS.project, v.projectId)) + '</td>' +
+          '<td>' + esc(SS.name(SS.jobType, v.jobType)) + '</td><td>' + esc(v.detail) + '</td>' +
+          '<td style="text-align:right"><button class="btn btn-ghost btn-sm" data-vsdel="' + v.id + '">ลบ</button></td></tr>'; }).join('') +
+      '</tbody></table></div>' +
+      (fl ? U.note('open', 'ขึ้นธงให้หัวหน้าเห็น — ' + esc(fl.why)) : '') +
+      U.note('mock', 'การแวะไม่เพิ่มจำนวนมื้อและไม่เพิ่มวันชดเชย — หนึ่งคนหนึ่งวันมีรายการเบี้ยเลี้ยงรายการเดียวเสมอ · ' +
+        'การนับคน-วัน: <b>1.0 คน-วันยกให้ไซต์หลัก</b> ส่วนไซต์ที่แวะนับเป็น "จำนวนครั้งที่เข้าไซต์" ห้ามนับ 1 คน-วันให้ทุกไซต์');
+  }
+
+  function visitModal(ci) {
+    var cap = +S.get().params.maxVisitsPerDay || 0;
+    var used = (ci.visits || []).length;
+    var jobs = S.get().jobTypes.filter(function (j) { return j.enabled && j.requireSite; });
+    var st = { jobType: ci.jobType, projectId: '', time: SS.d.now(), detail: '' };
+
+    function sites() {
+      return C.sitesFor(st.jobType).filter(function (p) {
+        return p.id !== ci.projectId && !(ci.visits || []).some(function (v) { return v.projectId === p.id; });
+      });
+    }
+    function body() {
+      var list = sites();
+      return '<p style="font-size:14px;margin:0 0 14px">ไซต์หลักของวันนี้คือ <b>' + esc(SS.name(SS.project, ci.projectId)) +
+        '</b> ซึ่งเป็นตัวกำหนดจำนวนมื้อของทั้งวัน · แวะได้อีก <b>' + (cap - used) + '</b> จาก ' + cap + ' แห่ง</p>' +
+        '<div class="frow"><div class="field"><label>ประเภทงานที่ไซต์นี้</label>' +
+        '<select id="vJob">' + U.options(jobs, st.jobType) + '</select></div>' +
+        '<div class="field"><label>เวลาที่ไปถึง</label><input type="time" id="vTime" value="' + esc(st.time) + '"></div></div>' +
+        '<div class="field"><label>ไซต์ที่แวะ <span class="req">*</span></label>' +
+        (list.length
+          ? '<select id="vSite"><option value="">— เลือกไซต์ —</option>' +
+            list.map(function (p) { return '<option value="' + p.id + '"' + (p.id === st.projectId ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>'
+          : '<div class="issue">ไม่มีไซต์อื่นให้เลือกสำหรับประเภทงานนี้แล้ว</div>') + '</div>' +
+        '<div class="field"><label>งานที่ทำที่ไซต์นี้ <span class="req">*</span></label>' +
+        '<textarea id="vDetail" placeholder="เช่น เปลี่ยนฟิวส์ String 3">' + esc(st.detail) + '</textarea>' +
+        '<div class="hint">ใช้กติกาเดียวกับ CI-05 — บังคับกรอก</div></div>';
+    }
+    function open() {
+      U.modal({
+        title: 'แวะไซต์เพิ่ม · ' + U.date(ci.date, 'long'),
+        body: body(),
+        buttons: [
+          { label: 'ปิด', cls: 'btn-ghost' },
+          { label: 'บันทึกการแวะ', cls: 'btn-accent', onClick: function () {
+              var r = S.addVisit(ci.id, {
+                projectId: $('#vSite') ? $('#vSite').value : '',
+                jobType: $('#vJob').value, time: $('#vTime').value,
+                detail: $('#vDetail').value
+              });
+              if (!r.ok) { U.toast(r.msg, 'err'); return false; }
+              U.toast('บันทึกการแวะไซต์แล้ว · ไม่เพิ่มมื้อและไม่เพิ่มวันชดเชย', 'ok');
+              SS.app.refresh();
+            } }
+        ],
+        onOpen: function () {
+          $('#vJob').addEventListener('change', function () {
+            st.jobType = this.value; st.projectId = '';
+            st.time = $('#vTime').value; st.detail = $('#vDetail').value;
+            U.closeModal(); open();
+          });
+        }
+      });
+    }
+    open();
   }
 
   /* ---------- CI-26 · หยุดงานที่ไซต์ ----------
@@ -371,38 +500,254 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
   /* ======================================================================
      ประวัติเช็คอินของฉัน
      ====================================================================== */
+  /* ==================================================================
+     CI-24 · สรุปของตัวเองสำหรับพนักงาน
+     ศูนย์รายงาน 15 รายงานที่มีอยู่เป็นของฝั่งแอดมินทั้งหมด พนักงานไม่เห็นตัวเลขของตัวเองเลย
+     *** ห้ามแสดงจำนวนเงินค่าอาหารหรือเบี้ยเลี้ยง (CI-03) — แสดงได้แค่จำนวนวันและจำนวนมื้อ ***
+     ================================================================== */
+  var sumMonth = null;
+
+  SS.views.mysummary = function (host) {
+    var me = S.user(), T = SS.d.today();
+    if (!sumMonth) sumMonth = SS.d.month(T);
+    var from = sumMonth + '-01';
+    var y = +sumMonth.slice(0, 4), mm = +sumMonth.slice(5, 7);
+    var to = SS.d.iso(new Date(y, mm, 0));
+    if (to > T) to = T;
+
+    var n = { work: 0, sitestop: 0, leave: 0, absent: 0, holiday: 0, pending: 0, review: 0, exempt: 0 };
+    var lateDays = 0, lateMin = 0, meals = 0, byLeave = {};
+    if (from <= to) SS.d.eachDay(from, to, function (d) {
+      var st = C.dayStatus(me.id, d);
+      n[st.status] = (n[st.status] || 0) + 1;
+      if (st.checkin) {
+        var lm = C.lateMinutes(st.checkin);
+        if (lm) { lateDays++; lateMin += lm; }
+        var a = C.allowanceOf(st.checkin);
+        if (a && !a.skip) meals += a.meals;
+      }
+      if (st.status === 'leave' && st.leave) {
+        byLeave[st.leave.type] = (byLeave[st.leave.type] || 0) + (st.leave.halfDay ? 0.5 : 1);
+      }
+    });
+
+    var buckets = C.buckets(me.id).filter(function (b) { return !b.expired && b.days > 0; });
+
+    var h = '<div class="monthbar">' +
+      '<button class="btn btn-ghost btn-sm" id="sPrev">← เดือนก่อน</button>' +
+      '<b>' + esc(U.monthName(sumMonth)) + '</b>' +
+      '<button class="btn btn-ghost btn-sm" id="sNext"' + (sumMonth >= SS.d.month(T) ? ' disabled' : '') + '>เดือนถัดไป →</button>' +
+      '</div>';
+
+    h += '<div class="grid g4" style="margin-bottom:16px">' +
+      '<div class="stat g"><div class="l">วันทำงาน</div><div class="v">' + n.work + '<small>วัน</small></div>' +
+        '<div class="n">' + (n.sitestop ? 'หยุดงานที่ไซต์อีก ' + n.sitestop + ' วัน' : 'นับเฉพาะวันที่มีเช็คอิน') + '</div></div>' +
+      '<div class="stat y"><div class="l">มาสาย</div><div class="v">' + lateDays + '<small>วัน</small></div>' +
+        '<div class="n">รวม ' + lateMin + ' นาที · เกณฑ์ ' + esc(S.get().params.workStart) +
+        ' ผ่อนผัน ' + (+S.get().params.graceMinutes || 0) + ' นาที</div></div>' +
+      '<div class="stat r"><div class="l">ขาดงาน</div><div class="v">' + n.absent + '<small>วัน</small></div>' +
+        '<div class="n">' + (n.absent ? 'ทักท้วงได้ที่ประวัติเช็คอิน' : 'ไม่มีวันขาดงาน') + '</div></div>' +
+      '<div class="stat"><div class="l">จำนวนมื้อที่ได้</div><div class="v">' + meals + '<small>มื้อ</small></div>' +
+        '<div class="n">แสดงเป็นจำนวนมื้อเท่านั้น ไม่มีตัวเลขเงิน</div></div>' +
+      '</div>';
+
+    /* วันลาที่ใช้ในเดือนนี้ */
+    h += '<div class="card"><div class="chead"><h2>วันลาที่ใช้ในเดือนนี้</h2><span class="sp"></span>' + U.ref('CI-24') + '</div>';
+    var ks = Object.keys(byLeave);
+    if (!ks.length) h += U.empty('ไม่มีวันลาในเดือนนี้');
+    else h += '<div class="tw"><table class="t"><tbody>' + ks.map(function (k) {
+      return '<tr><td>' + esc(SS.name(SS.leaveType, k)) + '</td><td class="n">' + U.num(byLeave[k]) + ' วัน</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+    if (n.pending || n.review) h += U.note('open', 'ยังมีวันที่รออนุมัติลา ' + n.pending + ' วัน และรอตรวจสอบ ' + n.review + ' วัน — ยอดจะเปลี่ยนเมื่อหัวหน้าตัดสิน');
+    h += '</div>';
+
+    /* ยอดคงเหลือแต่ละถัง + วันหมดอายุ */
+    h += '<div class="card"><div class="chead"><h2>ยอดวันลาคงเหลือ แยกตามถัง</h2>' +
+      '<span class="sub">ถังที่หมดก่อนถูกตัดก่อน</span><span class="sp"></span>' + U.ref(['BR-01', 'CI-09', 'LV-12']) + '</div>';
+    if (!buckets.length) h += U.empty('ไม่มียอดคงเหลือ');
+    else h += '<div class="tw"><table class="t"><thead><tr><th>ถัง</th><th class="n">คงเหลือ</th><th>หมดอายุ</th><th></th></tr></thead><tbody>' +
+      buckets.map(function (b) {
+        var days = SS.d.diff(SS.d.today(), b.expiry);
+        return '<tr><td>' + esc(b.label) + '</td><td class="n">' + U.num(b.days) + ' วัน</td>' +
+          '<td>' + esc(U.date(b.expiry, 'long')) + '</td>' +
+          '<td>' + (days <= 90 ? U.pill('pill-yellow', 'เหลืออีก ' + days + ' วัน') : '') + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+    h += U.note('mock', 'หน้านี้เห็นได้เฉพาะของตัวเอง · ไม่มีตัวเลขเงินค่าอาหารหรือเบี้ยเลี้ยงตาม CI-03 — ถ้าเห็นตัวเลขเงินที่ไหนในหน้านี้ ถือว่าผิดข้อกำหนด') + '</div>';
+
+    host.innerHTML = h;
+    $('#sPrev').addEventListener('click', function () {
+      var yy = +sumMonth.slice(0, 4), m2 = +sumMonth.slice(5, 7) - 1;
+      if (m2 === 0) { yy--; m2 = 12; }
+      sumMonth = yy + '-' + SS.d.pad(m2); SS.app.refresh();
+    });
+    $('#sNext').addEventListener('click', function () {
+      var yy = +sumMonth.slice(0, 4), m2 = +sumMonth.slice(5, 7) + 1;
+      if (m2 === 13) { yy++; m2 = 1; }
+      sumMonth = yy + '-' + SS.d.pad(m2); SS.app.refresh();
+    });
+  };
+
+  /* ==================================================================
+     CI-22 · CI-23 · ประวัติเช็คอินของฉัน
+     เป็นรายวัน ไม่ใช่รายเช็คอิน เพราะ CI-23 สั่งให้กรองตามสถานะรายวันได้
+     วันที่ลาหรือขาดงานจึงต้องมีแถวของตัวเอง ไม่ใช่หายไปเพราะไม่มีเช็คอิน
+     ค่าตั้งต้นแสดงเดือนปัจจุบัน · จำนวนวันต่อหน้าเป็นพารามิเตอร์
+     ================================================================== */
+  var hist = { mode: 'month', month: null, from: '', to: '', status: 'all', page: 0 };
+
+  function histDays(me) {
+    var T = SS.d.today(), out = [];
+    var from, to;
+    if (hist.mode === 'range') {
+      from = hist.from; to = hist.to;
+      if (!from || !to || from > to) return null;
+    } else {
+      var m = hist.month || SS.d.month(T);
+      from = m + '-01';
+      var y = +m.slice(0, 4), mm = +m.slice(5, 7);
+      to = SS.d.iso(new Date(y, mm, 0));
+    }
+    if (to > T) to = T;                                   /* วันในอนาคตยังไม่มีอะไรให้ดู */
+    if (from > to) return [];
+    SS.d.eachDay(from, to, function (d) {
+      var st = C.dayStatus(me.id, d);
+      var late = st.checkin ? C.lateMinutes(st.checkin) : 0;
+      if (hist.status === 'late') { if (!late) return; }
+      else if (hist.status !== 'all' && st.status !== hist.status) return;
+      out.push({ date: d, st: st, late: late });
+    });
+    return out.reverse();                                 /* ใหม่สุดอยู่บน */
+  }
+
   SS.views.mycheckins = function (host) {
-    var me = S.user();
-    var rows = S.get().checkins.filter(function (c) { return c.empId === me.id; })
-                 .sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 45);
-    var h = '<div class="card"><div class="chead"><h2>ประวัติการเช็คอินของฉัน</h2><span class="sp"></span>' + U.ref(['CI-06', 'CI-21']) + '</div>' +
-      U.note('mock', 'ไม่มีปุ่มลบ — ใช้การทำเครื่องหมาย "ยกเลิก" แทน และเก็บประวัติการแก้ไขทุกครั้ง') +
-      '<div class="tw"><table class="t"><thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภทงาน</th><th>ไซต์งาน</th><th>ลักษณะการไป</th><th>สถานะ</th><th></th></tr></thead><tbody>';
-    if (!rows.length) h += '<tr><td colspan="7">' + U.empty('ยังไม่มีประวัติ') + '</td></tr>';
-    rows.forEach(function (c) {
-      var late = C.lateMinutes(c);
-      h += '<tr' + (c.status === 'cancelled' ? ' style="opacity:.5"' : '') + '>' +
-        '<td>' + esc(U.date(c.date, 'dow')) + '</td>' +
-        '<td>' + esc(c.time) + (late ? ' <span class="pill pill-yellow">สาย ' + late + '</span>' : '') + '</td>' +
-        '<td>' + esc(SS.name(SS.jobType, c.jobType)) + '</td>' +
-        '<td>' + esc(c.projectId ? SS.name(SS.project, c.projectId) : c.otherPlace || '—') + '</td>' +
-        /* CI-18 ฉบับ 8 ก.ย. · ธงขึ้นเฉพาะรายการที่จำนวนมื้อเปลี่ยน ไม่ใช่ทุกครั้งที่แก้จากค่าตั้งต้น */
-        '<td>' + esc(SS.name(SS.travelType, c.travelType)) +
-          (C.mealFlag(c) ? ' <span class="pill pill-orange" title="' + esc(C.mealFlag(c).why) + '">มื้อเปลี่ยน</span>' : '') +
-          (c.siteStop ? ' <span class="pill pill-orange">หยุดงานที่ไซต์</span>' : '') + '</td>' +
-        '<td>' + (c.status === 'active' ? U.pill('pill-green', 'ใช้งาน') : U.pill('pill-gray', 'ยกเลิกแล้ว')) +
-          (c.editLog && c.editLog.length ? ' <span class="pill pill-blue">แก้ไข ' + c.editLog.length + ' ครั้ง</span>' : '') + '</td>' +
-        '<td style="text-align:right">' + (c.status === 'active'
+    var me = S.user(), P = S.get().params, T = SS.d.today();
+    var size = +P.historyPageSize || 31;
+    if (!hist.month) hist.month = SS.d.month(T);
+    var all = histDays(me);
+
+    var STATUSES = [{ id: 'all', name: 'ทุกสถานะ' }, { id: 'late', name: 'เฉพาะวันที่มาสาย' }]
+      .concat(SS.DAY_STATUS.filter(function (d) { return d.id !== 'exempt'; })
+                           .map(function (d) { return { id: d.id, name: d.name }; }));
+
+    /* แถบเลือกช่วง (CI-22 · CI-23) */
+    var h = '<div class="card"><div class="chead"><h2>ประวัติการเช็คอินของฉัน</h2><span class="sp"></span>' +
+      U.ref(['CI-06', 'CI-21', 'CI-22', 'CI-23']) + '</div>' +
+      '<div class="choices" style="margin-bottom:12px">' +
+        '<label class="choice' + (hist.mode === 'month' ? ' on' : '') + '"><input type="radio" name="hMode" value="month"' +
+          (hist.mode === 'month' ? ' checked' : '') + '> รายเดือน</label>' +
+        '<label class="choice' + (hist.mode === 'range' ? ' on' : '') + '"><input type="radio" name="hMode" value="range"' +
+          (hist.mode === 'range' ? ' checked' : '') + '> เลือกช่วงวันที่เอง</label>' +
+      '</div>';
+
+    if (hist.mode === 'month') {
+      h += '<div class="monthbar">' +
+        '<button class="btn btn-ghost btn-sm" id="hPrev">← เดือนก่อน</button>' +
+        '<b>' + esc(U.monthName(hist.month)) + '</b>' +
+        '<button class="btn btn-ghost btn-sm" id="hNext"' + (hist.month >= SS.d.month(T) ? ' disabled' : '') + '>เดือนถัดไป →</button>' +
+        '</div>';
+    } else {
+      h += '<div class="frow3">' +
+        '<div class="field"><label>ตั้งแต่วันที่</label><input type="date" id="hFrom" value="' + esc(hist.from) + '"></div>' +
+        '<div class="field"><label>ถึงวันที่</label><input type="date" id="hTo" value="' + esc(hist.to) + '"></div>' +
+        '<div class="field"><label>สถานะรายวัน</label><select id="hStatus">' + U.options(STATUSES, hist.status, 'id', 'name') + '</select></div>' +
+        '</div>';
+    }
+    if (hist.mode === 'month') {
+      h += '<div class="field" style="max-width:320px"><label>สถานะรายวัน</label>' +
+        '<select id="hStatus">' + U.options(STATUSES, hist.status, 'id', 'name') + '</select></div>';
+    }
+
+    if (all === null) {
+      h += U.empty('เลือกวันที่ให้ครบทั้งสองช่อง', 'และวันเริ่มต้องไม่หลังวันสิ้นสุด');
+      host.innerHTML = h + '</div>';
+      bindHist(host, me);
+      return;
+    }
+
+    var total = all.length;
+    var maxPage = Math.max(0, Math.ceil(total / size) - 1);
+    if (hist.page > maxPage) hist.page = maxPage;
+    var rows = all.slice(hist.page * size, hist.page * size + size);
+    var lateDays = all.filter(function (r) { return r.late; });
+    var lateMin = lateDays.reduce(function (a, r) { return a + r.late; }, 0);
+
+    h += '<div class="hsum">พบ <b>' + total + '</b> วัน' +
+      (hist.status === 'all' ? '' : ' ที่ตรงกับตัวกรอง') +
+      ' · มาสาย <b>' + lateDays.length + '</b> วัน รวม <b>' + lateMin + '</b> นาที' +
+      (total > size ? ' · แสดง ' + (hist.page * size + 1) + '–' + (hist.page * size + rows.length) : '') + '</div>';
+
+    h += U.note('mock', 'ไม่มีปุ่มลบ — ใช้การทำเครื่องหมาย "ยกเลิก" แทน และเก็บประวัติการแก้ไขทุกครั้ง') +
+      '<div class="tw"><table class="t"><thead><tr><th>วันที่</th><th>สถานะ</th><th>เวลา</th><th>ประเภทงาน</th><th>ไซต์งาน</th><th>ลักษณะการไป</th><th></th></tr></thead><tbody>';
+
+    if (!rows.length) h += '<tr><td colspan="7">' + U.empty('ไม่มีวันที่ตรงกับที่เลือก', 'ลองเปลี่ยนช่วงวันหรือสถานะ') + '</td></tr>';
+    rows.forEach(function (r) {
+      var c = r.st.checkin, cancelled = c && c.status === 'cancelled';
+      var site = !c ? '—'
+        : c.projectId ? SS.name(SS.project, c.projectId)
+        : c.otherPlace ? c.otherPlace
+        /* CI-21 · รายการเก่าที่ระบุโครงการไม่ได้ ต้องขึ้นว่าไม่ระบุโครงการ ไม่ใช่ช่องว่าง */
+        : SS.jobType(c.jobType) && SS.jobType(c.jobType).requireSite ? 'ไม่ระบุโครงการ' : '—';
+      h += '<tr' + (cancelled ? ' style="opacity:.5"' : '') + '>' +
+        '<td>' + esc(U.date(r.date, 'dow')) + '</td>' +
+        '<td>' + U.dayPill(r.st) + (r.st.leave ? ' <small>' + esc(SS.name(SS.leaveType, r.st.leave.type)) + '</small>' : '') + '</td>' +
+        '<td>' + (c ? esc(c.time) + (r.late ? ' <span class="pill pill-yellow">สาย ' + r.late + '</span>' : '') : '—') + '</td>' +
+        '<td>' + (c ? esc(SS.name(SS.jobType, c.jobType)) : '—') + '</td>' +
+        '<td>' + esc(site) + '</td>' +
+        '<td>' + (c ? esc(SS.name(SS.travelType, c.travelType)) +
+            (C.mealFlag(c) ? ' <span class="pill pill-orange" title="' + esc(C.mealFlag(c).why) + '">มื้อเปลี่ยน</span>' : '') +
+            (c.siteStop ? ' <span class="pill pill-orange">' + esc(SS.name(SS.stopReason, c.siteStop.reason)) + '</span>' : '') +
+            (c.editLog && c.editLog.length ? ' <span class="pill pill-blue">แก้ไข ' + c.editLog.length + ' ครั้ง</span>' : '')
+          : '—') + '</td>' +
+        '<td style="text-align:right">' + (c && !cancelled
           ? '<button class="btn btn-ghost btn-sm" data-edit="' + c.id + '">แก้ไข</button>' : '') + '</td></tr>';
     });
-    h += '</tbody></table></div></div>';
+    h += '</tbody></table></div>';
+
+    /* CI-22 · มีมากกว่าที่แสดงได้ ต้องบอกว่ายังมีอีกเท่าไร ไม่ใช่ตัดจบเงียบ ๆ */
+    if (total > size) {
+      h += '<div class="pager">' +
+        '<button class="btn btn-ghost btn-sm" id="hBack"' + (hist.page === 0 ? ' disabled' : '') + '>← ก่อนหน้า</button>' +
+        '<span>หน้า ' + (hist.page + 1) + ' จาก ' + (maxPage + 1) + ' · ยังมีอีก ' + (total - (hist.page * size + rows.length)) + ' วัน</span>' +
+        '<button class="btn btn-ghost btn-sm" id="hFwd"' + (hist.page >= maxPage ? ' disabled' : '') + '>ถัดไป →</button>' +
+        '</div>';
+    }
+    h += '</div>';
     host.innerHTML = h;
+    bindHist(host, me);
+  };
+
+  function bindHist(host, me) {
+    $$('[name=hMode]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        hist.mode = this.value; hist.page = 0;
+        if (hist.mode === 'range' && !hist.from) {
+          hist.to = SS.d.today(); hist.from = SS.d.add(hist.to, -30);
+        }
+        SS.app.refresh();
+      });
+    });
+    if ($('#hPrev')) $('#hPrev').addEventListener('click', function () {
+      var y = +hist.month.slice(0, 4), m = +hist.month.slice(5, 7) - 1;
+      if (m === 0) { y--; m = 12; }
+      hist.month = y + '-' + SS.d.pad(m); hist.page = 0; SS.app.refresh();
+    });
+    if ($('#hNext')) $('#hNext').addEventListener('click', function () {
+      var y = +hist.month.slice(0, 4), m = +hist.month.slice(5, 7) + 1;
+      if (m === 13) { y++; m = 1; }
+      hist.month = y + '-' + SS.d.pad(m); hist.page = 0; SS.app.refresh();
+    });
+    if ($('#hFrom')) $('#hFrom').addEventListener('change', function () { hist.from = this.value; hist.page = 0; SS.app.refresh(); });
+    if ($('#hTo')) $('#hTo').addEventListener('change', function () { hist.to = this.value; hist.page = 0; SS.app.refresh(); });
+    if ($('#hStatus')) $('#hStatus').addEventListener('change', function () { hist.status = this.value; hist.page = 0; SS.app.refresh(); });
+    if ($('#hBack')) $('#hBack').addEventListener('click', function () { hist.page--; SS.app.refresh(); });
+    if ($('#hFwd')) $('#hFwd').addEventListener('click', function () { hist.page++; SS.app.refresh(); });
     $$('[data-edit]').forEach(function (b) {
       b.addEventListener('click', function () {
         editCheckinModal(S.get().checkins.filter(function (c) { return c.id === b.getAttribute('data-edit'); })[0]);
       });
     });
-  };
+  }
+
 
   /* ======================================================================
      ยื่นใบลา (LV-03 · LV-06 · LV-07 · BR-01 · BR-02)

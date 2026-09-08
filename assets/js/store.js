@@ -73,7 +73,7 @@ SS.store = (function () {
         id: 'CI-' + emp.id + '-' + date, empId: emp.id, date: date, time: time,
         jobType: job, projectId: prj, otherPlace: '',
         travelType: emp.shift === 'night' ? 'night' : jt.defaultTravel,
-        travelChanged: false, siteStop: null, overtime: false,
+        travelChanged: false, siteStop: null, visits: [], geo: null, overtime: false,
         detail: holidayWork ? 'เร่งงานติดตั้งก่อนส่งมอบ' : '',
         status: 'active', rawSite: null, createdAt: date + ' ' + time, editLog: []
       };
@@ -105,7 +105,8 @@ SS.store = (function () {
       editRequests: [],
       audit: [],
       feedback: [],
-      lastChoice: {}
+      lastChoice: {},
+      geoNoticeSeen: false          /* CI-28 · ประกาศ PDPA ขึ้นครั้งเดียว */
     };
   }
 
@@ -178,6 +179,8 @@ SS.store = (function () {
         /* ช่องเหตุผลถูกตัดออกทั้งช่องเมื่อ 8 ก.ย. 2569 (CI-18) — การควบคุมย้ายไปที่ธงอัตโนมัติ
            ที่ core.mealFlag() คำนวณตอนอ่าน จึงไม่มี travelReason ในรายการใหม่อีก */
         siteStop: null,
+        visits: [],                       /* CI-25 · ไซต์ที่แวะเพิ่ม ไม่สร้างวันใหม่ ไม่เพิ่มมื้อ */
+        geo: data.geo || null,            /* CI-28 · บันทึกอย่างเดียว ห้ามบล็อก ห้ามแสดงให้พนักงานเห็น */
         overtime: !!data.overtime, detail: data.detail || '', status: 'active',
         rawSite: null, createdAt: T + ' ' + SS.d.now(), editLog: []
       };
@@ -223,6 +226,49 @@ SS.store = (function () {
       emit();
       return { ok: true, needApproval: false };
     },
+
+    /* ---------- CI-25 · แวะไซต์เพิ่ม ----------
+       วันยังเป็นหน่วยเดียว — การแวะไม่สร้างวันใหม่ ไม่เพิ่มมื้อ ไม่เพิ่มวันชดเชย
+       การนับคน-วัน: 1.0 ยกให้ไซต์หลักเสมอ ไซต์ที่แวะนับเป็น "จำนวนครั้งที่เข้าไซต์"
+       ห้ามนับ 1 คน-วันให้ทุกไซต์ ต้นทุนโครงการจะบวมเกินจริง */
+    addVisit: function (checkinId, data) {
+      var c = state.checkins.filter(function (x) { return x.id === checkinId; })[0];
+      if (!c) return { ok: false, msg: 'ไม่พบรายการเช็คอิน' };
+      if (c.status !== 'active') return { ok: false, msg: 'รายการนี้ถูกยกเลิกไปแล้ว' };
+      var cap = +state.params.maxVisitsPerDay || 0;
+      if (!cap) return { ok: false, msg: 'ปิดการใช้งานการแวะไซต์เพิ่มอยู่ (ตั้งค่าเป็น 0)' };
+      if ((c.visits || []).length >= cap) return { ok: false, msg: 'แวะได้ไม่เกิน ' + cap + ' ไซต์ต่อวัน' };
+      if (!data.projectId) return { ok: false, msg: 'กรุณาเลือกไซต์ที่แวะ' };
+      if (!String(data.detail || '').trim()) return { ok: false, msg: 'กรุณากรอกงานที่ทำที่ไซต์นี้' };
+      if (data.projectId === c.projectId) return { ok: false, msg: 'ไซต์นี้เป็นไซต์หลักของวันนี้อยู่แล้ว' };
+      if ((c.visits || []).some(function (v) { return v.projectId === data.projectId; }))
+        return { ok: false, msg: 'บันทึกการแวะไซต์นี้ไปแล้ววันนี้' };
+      c.visits = c.visits || [];
+      var v = {
+        id: 'VS-' + c.id + '-' + (c.visits.length + 1),
+        projectId: data.projectId, jobType: data.jobType || c.jobType,
+        time: data.time || SS.d.now(), detail: String(data.detail).trim(),
+        by: state.currentUserId, at: new Date().toISOString()
+      };
+      c.visits.push(v);
+      log('บันทึกแวะไซต์เพิ่ม', c.id, SS.name(SS.project, v.projectId) + ' · ' + v.time + ' · ' + v.detail);
+      emit();
+      return { ok: true, visit: v };
+    },
+    removeVisit: function (checkinId, visitId, reason) {
+      var c = state.checkins.filter(function (x) { return x.id === checkinId; })[0];
+      if (!c || !c.visits) return { ok: false };
+      var v = c.visits.filter(function (x) { return x.id === visitId; })[0];
+      c.visits = c.visits.filter(function (x) { return x.id !== visitId; });
+      log('ลบรายการแวะไซต์', c.id, (v ? SS.name(SS.project, v.projectId) + ' · ' : '') + (reason || 'ไม่ระบุเหตุผล'));
+      emit();
+      return { ok: true };
+    },
+
+    /* ---------- CI-28 · ประกาศเรื่องการเก็บพิกัด ----------
+       ขึ้นครั้งเดียวตอนใช้ครั้งแรก ไม่ใช่ถามทุกวัน */
+    geoNoticeSeen: function () { return !!state.geoNoticeSeen; },
+    markGeoNotice: function () { state.geoNoticeSeen = true; emit(); },
 
     /* ---------- CI-26 · หยุดงานที่ไซต์ ----------
        กดได้หลังเช็คอินแล้วเท่านั้น — ต้องไปถึงก่อนถึงจะหยุดได้

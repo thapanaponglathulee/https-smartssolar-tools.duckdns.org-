@@ -123,6 +123,20 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       h += '<li><span class="tt">' + esc(st.checkin.time) + '</span><span>เช็คอิน · ' +
         esc(SS.name(SS.jobType, st.checkin.jobType)) + (st.checkin.projectId ? ' · ' + esc(SS.name(SS.project, st.checkin.projectId)) : '') +
         (fl ? ' <span class="pill pill-orange">มื้อเปลี่ยน</span>' : '') + '</span></li>';
+      /* CI-25 · ไซต์ที่แวะ — นับเป็นจำนวนครั้ง ไม่ใช่คน-วัน */
+      (st.checkin.visits || []).forEach(function (v) {
+        h += '<li><span class="tt">' + esc(v.time) + '</span><span>แวะ · ' + esc(SS.name(SS.project, v.projectId)) +
+          ' · ' + esc(SS.name(SS.jobType, v.jobType)) + ' — ' + esc(v.detail) + '</span></li>';
+      });
+      /* CI-28 · ระยะจากไซต์ เห็นได้เฉพาะหัวหน้างานและฝ่ายบุคคล ห้ามแสดงให้พนักงานเห็น */
+      var dist = C.distanceOf(st.checkin);
+      if (dist !== null) {
+        var rad = +S.get().params.siteRadiusMeters || 500;
+        h += '<li><span class="tt">พิกัด</span><span>ห่างจากไซต์ ' + dist.toLocaleString('th-TH') + ' เมตร ' +
+          (dist <= rad ? U.pill('pill-green', 'อยู่ในรัศมี') : U.pill('pill-yellow', 'นอกรัศมี ' + rad + ' ม.')) + '</span></li>';
+      } else if (st.checkin.geo && st.checkin.geo.lat === null) {
+        h += '<li><span class="tt">พิกัด</span><span>ไม่มีพิกัด (' + esc(st.checkin.geo.why || '—') + ') — ไม่บล็อกการเช็คอิน</span></li>';
+      }
       /* CI-26 */
       if (st.checkin.siteStop) h += '<li><span class="tt">—</span><span>หยุดงานที่ไซต์ · ' +
         esc(SS.name(SS.stopReason, st.checkin.siteStop.reason)) +

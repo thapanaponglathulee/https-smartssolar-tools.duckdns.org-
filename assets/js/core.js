@@ -391,6 +391,50 @@ SS.core = (function () {
     };
   }
 
+  /* ----------------------------------------------------------------------
+     CI-25 · การแวะไซต์เพิ่ม
+     ไม่เพิ่มมื้อ — แต่ถ้าประเภทงานของไซต์ที่แวะ "ควรได้มื้อมากกว่า" ไซต์หลัก
+     ให้ขึ้นธงให้หัวหน้าเห็น ระบบไม่ตัดสินเอง (กติกาเดียวกับ CI-18)
+     ---------------------------------------------------------------------- */
+  function visitFlag(ci) {
+    if (!ci || !ci.visits || !ci.visits.length) return null;
+    var base = mealCount([ci.travelType]);
+    var top = base, who = null;
+    ci.visits.forEach(function (v) {
+      var jt = SS.jobType(v.jobType);
+      var m = jt ? mealCount([jt.defaultTravel]) : 0;
+      if (m > top) { top = m; who = v; }
+    });
+    if (!who) return null;
+    return {
+      from: base, to: top, visit: who,
+      why: 'ไซต์ที่แวะเป็น ' + SS.name(SS.jobType, who.jobType) + ' ซึ่งค่าตั้งต้นได้ ' + top +
+           ' มื้อ มากกว่าไซต์หลักที่ได้ ' + base + ' มื้อ — ระบบไม่เปลี่ยนจำนวนมื้อให้เอง'
+    };
+  }
+
+  /* คน-วัน (CI-25) — 1.0 ยกให้ไซต์หลักเสมอ ไซต์ที่แวะนับเป็นจำนวนครั้ง ไม่ใช่คน-วัน */
+  function manDay(ci) {
+    if (!ci || ci.status !== 'active') return null;
+    return {
+      mainSite: ci.projectId || null,
+      manDays: 1.0,
+      visits: (ci.visits || []).map(function (v) { return { projectId: v.projectId, entries: 1 }; })
+    };
+  }
+
+  /* CI-28 · ระยะจากพิกัดไซต์ · หน่วยเมตร — ใช้ในรายงานเท่านั้น ห้ามแสดงให้พนักงานเห็น */
+  function distanceOf(ci) {
+    if (!ci || !ci.geo || ci.geo.lat === undefined || ci.geo.lat === null) return null;
+    var pj = ci.projectId ? SS.project(ci.projectId) : null;
+    if (!pj || pj.lat === undefined || pj.lat === null) return null;
+    var R = 6371000, rad = Math.PI / 180;
+    var dLat = (pj.lat - ci.geo.lat) * rad, dLng = (pj.lng - ci.geo.lng) * rad;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(ci.geo.lat * rad) * Math.cos(pj.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  }
+
   /* ชุดลักษณะการไปที่ประเภทงานนั้นเลือกได้ (CI-18 · FB-2) */
   function travelsFor(jobTypeId) {
     var jt = SS.jobType(jobTypeId);
@@ -458,6 +502,7 @@ SS.core = (function () {
     autoCheckLeave: autoCheckLeave,
     mealCount: mealCount, rateAt: rateAt, allowanceOf: allowanceOf,
     sitesFor: sitesFor, travelsFor: travelsFor, defaultTravelFor: defaultTravelFor,
-    mealFlag: mealFlag, quickBar: quickBar
+    mealFlag: mealFlag, visitFlag: visitFlag, manDay: manDay, distanceOf: distanceOf,
+    quickBar: quickBar
   };
 })();

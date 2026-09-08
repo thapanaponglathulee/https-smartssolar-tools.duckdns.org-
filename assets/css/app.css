@@ -280,3 +280,12 @@ table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
 .howto li{margin-bottom:5px}
 .howto .hn{margin:0;padding:0 14px 12px;color:var(--dim);font-size:12.5px;line-height:1.6}
 table.t tr.on td{background:#FFF6EC}
+
+/* ---------- ประวัติเช็คอิน · สรุปของฉัน (CI-22 · CI-23 · CI-24) ---------- */
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#F4F7FB;border:1px solid var(--line);border-radius:9px;padding:9px 14px;margin-bottom:13px}
+.monthbar b{font-size:15.5px}
+.hsum{font-size:13.5px;color:var(--dim);margin:2px 0 12px}
+.hsum b{color:var(--ink)}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;font-size:13px;color:var(--dim)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+@media (max-width:600px){.monthbar{flex-wrap:wrap}.pager{flex-wrap:wrap}}

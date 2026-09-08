@@ -1,6 +1,7 @@
 # โครงสร้างข้อมูลปัจจุบัน
 
-สำรวจจากโค้ดจริงเมื่อ 8 ก.ย. 2569 · branch `claude/mockup-uat-t6futk` · commit `0f61efe`
+สำรวจจากโค้ดจริงเมื่อ 8 ก.ย. 2569 · branch `claude/mockup-uat-t6futk`
+**ปรับปรุงหลังทำงาน CI-22 ถึง CI-28 และมติ UAT 8 ก.ย.**
 
 > **สิ่งสำคัญที่ต้องรู้ก่อนอ่าน**
 >
@@ -20,7 +21,7 @@
 
 ---
 
-## รายชื่อ "ตาราง" ทั้งหมด 20 รายการ
+## รายชื่อ "ตาราง" ทั้งหมด 22 รายการ
 
 | # | คีย์ | เก็บอะไร | ต้นทาง |
 |---|---|---|---|
@@ -33,6 +34,7 @@
 | 7 | `rates` | อัตราเบี้ยเลี้ยงต่อมื้อรายไซต์ | `masters.js:102` |
 | 8 | `jobTypes` | ทะเบียนประเภทงาน | `masters.js:43` |
 | 9 | `travelTypes` | ลักษณะการไปงาน + จำนวนมื้อ | `masters.js:67` |
+| 9ก | `stopReasons` | **ใหม่** · S21 ทะเบียนเหตุผลไซต์หยุดงาน (CI-26) | `masters.js` · `SS.SITE_STOP_REASONS` |
 | 10 | `authority` | ตารางอำนาจอนุมัติ | `seed.js:71` |
 | 11 | `params` | พารามิเตอร์ระบบ | `masters.js:209` |
 | 12 | `compRequests` | คำขอวันชดเชยจากการทำงานวันหยุด | `store.js:185` |
@@ -44,6 +46,7 @@
 | 18 | `lastChoice` | ค่าที่เลือกล่าสุดตอนเช็คอิน รายคน | `store.js:181` |
 | 19 | `currentUserId` | ผู้ใช้ที่กำลังสวมบทบาทอยู่ | `store.js:88` |
 | 20 | `seededOn` | วันที่สร้างข้อมูลชุดนี้ | `store.js:89` |
+| 21 | `geoNoticeSeen` | **ใหม่** · เคยแสดงประกาศ PDPA เรื่องพิกัดแล้วหรือยัง (CI-28) | `store.js` · `fresh()` |
 
 ---
 
@@ -87,9 +90,12 @@
 | `projectId` | string \| null | → `projects.id` — `null` เมื่อประเภทงานไม่ต้องระบุไซต์ |
 | `otherPlace` | string | ชื่อสถานที่ที่พิมพ์เอง ใช้เมื่อประเภทงานอนุญาต (`otherPlace: true`) |
 | `travelType` | string | → `travelTypes.id` |
-| `travelChanged` | boolean | เปลี่ยนจากค่าตั้งต้นหรือไม่ |
-| `travelReason` | string | เหตุผลที่เปลี่ยน — บังคับกรอกเมื่อ `travelChanged` |
-| `overtime` | boolean | ทำงานนอกเวลา (บวกมื้ออาหารเพิ่ม 1) |
+| `travelChanged` | boolean | เปลี่ยนจากค่าตั้งต้นหรือไม่ — เก็บไว้เป็นข้อมูล ไม่ได้ใช้ตัดสินธงแล้ว |
+| ~~`travelReason`~~ | — | **ตัดออก 8 ก.ย. 2569 (CI-18)** ช่องเหตุผลถูกยกเลิกทั้งช่อง · การควบคุมย้ายไปที่ธงอัตโนมัติซึ่ง `core.mealFlag()` คำนวณตอนอ่าน ไม่เก็บลงแถว · รายการเก่าที่มีช่องนี้ยังอ่านได้ |
+| `siteStop` | object \| null | **ใหม่ (CI-26)** · `{ reason, note, allDay, from, by, at }` — ไปถึงไซต์แล้วทำงานไม่ได้ · ยังได้มื้อ ไม่นับขาดงาน |
+| `visits` | array | **ใหม่ (CI-25)** · ไซต์ที่แวะเพิ่ม `[{ id, projectId, jobType, time, detail, by, at }]` — ไม่สร้างวันใหม่ ไม่เพิ่มมื้อ |
+| `geo` | object \| null | **ใหม่ (CI-28)** · `{ lat, lng, acc }` หรือ `{ lat: null, why }` เมื่อจับพิกัดไม่ได้ — บันทึกอย่างเดียว ไม่บล็อก |
+| `overtime` | boolean | อยู่หน้างานนอกเวลา (บวกมื้ออาหารเพิ่ม 1) — **ไม่ใช่ชั่วโมง OT** ซึ่งอยู่ที่ `otRequests` |
 | `detail` | string | รายละเอียดงาน |
 | `status` | string | `active` หรือ `cancelled` — **ไม่มีการลบ** (`store.js:223`) |
 | `rawSite` | null | มีในทุกแถวแต่เป็น `null` เสมอ — ไม่พบโค้ดที่เขียนค่าลงไป |
@@ -123,6 +129,10 @@
 | `warns` | array | คำเตือนที่ไม่บล็อกการยื่น |
 | `lateNotice` / `lateReason` | boolean / string | แจ้งกระชั้น + เหตุผล |
 | `cancelReason` | string | เหตุผลที่ยกเลิก (เพิ่มตอนยกเลิก `store.js:292`) |
+
+> **การนับคน-วัน (CI-25)** — หนึ่งคนหนึ่งวัน = **1.0 คน-วันเสมอ ยกให้ไซต์หลัก** ส่วนไซต์ใน `visits`
+> นับเป็น *จำนวนครั้งที่เข้าไซต์* แยกคอลัมน์ **ห้ามนับ 1 คน-วันให้ทุกไซต์** ต้นทุนโครงการจะบวมเกินจริง
+> อ่านค่าผ่าน `core.manDay(ci)` · รายงานคน-วันไม่อยู่ในเฟสนี้ แต่โครงสร้างต้องถูกตั้งแต่วันนี้
 
 **สถานะใบลา 7 แบบ** (`masters.js:163-175`)
 
@@ -171,6 +181,9 @@
 |---|---|---|
 | `type` | string | → `SS.DAY_TYPES` (`masters.js:197`) |
 | `name` | string | ชื่อวันหยุด (ว่างถ้าเป็นวันธรรมดา) |
+
+> **สถานะรายวันมี 8 แบบแล้ว** — เพิ่ม `sitestop` "หยุดงานที่ไซต์" เมื่อ 8 ก.ย. 2569 ตาม CI-26
+> อ่านจาก `SS.DAY_STATUS` · เงื่อนไขคือมีเช็คอินและ `checkin.siteStop` ไม่ว่าง
 
 **ประเภทวัน 5 แบบ** — `work` วันทำงานปกติ · `sat-work` เสาร์ทำงาน · `sat-off` เสาร์หยุด ·
 `holiday` วันหยุดบริษัท · `sunday` วันอาทิตย์
@@ -268,7 +281,8 @@ ALW-02 เตือน ห้ามคิดเป็น 0 เงียบ ๆ
 | เช็คอิน | `selfEditHours` `notifyTime` |
 | วันลา | `quotaCycle` `probationDays` `maxLeavePerDay` |
 | อนุมัติ | `reminderEveryHours` `lapseAfterDays` |
-| เบี้ยเลี้ยง | `defaultMealRate` `payCycleStartDay` `distanceRateEnabled` `distanceRate` |
+| เบี้ยเลี้ยง | `defaultMealRate` `payCycleStartDay` `officeOvertimeMeals` `distanceRateEnabled` `distanceRate` |
+| เช็คอินและประวัติ | `selfEditHours` `historyPageSize` `maxVisitsPerDay` `notifyTime` `siteRadiusMeters` `geoNotice` |
 
 คอมเมนต์ในไฟล์ติดธง ⚠ ไว้ที่ `graceMinutes` และ `maxLeavePerDay` ว่า **ยังไม่เคาะ**
 
@@ -352,6 +366,7 @@ ALW-02 เตือน ห้ามคิดเป็น 0 เงียบ ๆ
 | **ใบลา** | `leaves` | ยอดคงเหลือแยกไปอยู่ `balances` · ประเภทการลาและกติกาอยู่ที่ `SS.LEAVE_TYPES` (`masters.js:120`) ซึ่งไม่ได้ถูกคัดลอกเข้า state |
 | **เบี้ยเลี้ยง** | **ไม่มีตารางเก็บ** — เก็บเฉพาะ `rates` (อัตราต่อมื้อรายไซต์) | ดูคำอธิบายด้านล่าง |
 | **ปฏิทิน** | `calendar` | วันทำงาน/วันหยุดรายวันทั้งปี · กิจกรรมบริษัทแยกไปอยู่ `events` · ประเภทวันอยู่ที่ `SS.DAY_TYPES` |
+| **เหตุผลไซต์หยุดงาน** | `stopReasons` | S21 · ใช้กับ `checkins.siteStop.reason` (CI-26) |
 | **สิทธิ์ผู้ใช้** | กระจาย 3 ที่ | ดูคำอธิบายด้านล่าง |
 
 ### เบี้ยเลี้ยง — ไม่มีตารางเก็บยอด

@@ -10,7 +10,8 @@ SS.app = (function () {
 
   var PAGES = {
     checkin:    { title: 'เช็คอิน', sub: 'ลงเวลาเข้างานประจำวัน', icon: '⏱', short: 'เช็คอิน' },
-    mycheckins: { title: 'ประวัติเช็คอินของฉัน', sub: 'แก้ไขได้ภายในเวลาที่กำหนด · ไม่มีการลบ', icon: '📋', short: 'ประวัติ' },
+    mycheckins: { title: 'ประวัติเช็คอินของฉัน', sub: 'เลือกเดือนหรือช่วงวันเอง · กรองตามสถานะรายวันได้', icon: '📋', short: 'ประวัติ' },
+    mysummary:  { title: 'สรุปของฉัน', sub: 'ตัวเลขของตัวเองรายเดือน — ไม่มีตัวเลขเงินตาม CI-03', icon: '📈', short: 'สรุป' },
     leavenew:   { title: 'ยื่นใบลา', sub: 'ระบบคำนวณจำนวนวันและถังที่จะตัดให้ก่อนกดส่ง', icon: '📝', short: 'ยื่นลา' },
     myleaves:   { title: 'ใบลาของฉัน', sub: 'ยอดใช้ไปกับยอดจองแยกกัน', icon: '🗂', short: 'ใบลา' },
     calendar:   { title: 'ปฏิทิน', sub: 'ปฏิทินเดียว หลายชั้นข้อมูล', icon: '📅', short: 'ปฏิทิน' },
@@ -26,10 +27,10 @@ SS.app = (function () {
   };
 
   var NAV = {
-    employee: [['ของฉัน', ['checkin', 'mycheckins', 'leavenew', 'myleaves', 'calendar']], ['UAT', ['specmap']]],
-    manager:  [['ของฉัน', ['checkin', 'mycheckins', 'leavenew', 'myleaves', 'calendar']],
+    employee: [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar']], ['UAT', ['specmap']]],
+    manager:  [['ของฉัน', ['checkin', 'mycheckins', 'mysummary', 'leavenew', 'myleaves', 'calendar']],
                ['ทีมของฉัน', ['team', 'approvals', 'dashboard']], ['UAT', ['specmap']]],
-    hr:       [['ของฉัน', ['checkin', 'myleaves', 'calendar']],
+    hr:       [['ของฉัน', ['checkin', 'mysummary', 'myleaves', 'calendar']],
                ['งานฝ่ายบุคคล', ['dashboard', 'approvals', 'staff', 'workcal']],
                ['ของกลางและตั้งค่า', ['tables', 'settings', 'audit']], ['UAT', ['specmap']]],
     exec:     [['ภาพรวม', ['dashboard', 'approvals', 'calendar', 'team']],
