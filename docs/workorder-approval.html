@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบสั่งงานแท็บอนุมัติ Solar Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Noto+Serif+Thai:wght@500;600;700&display=swap">
+
+<style>
+:root{
+  --bg:#EDF1F3;--surface:#FFFFFF;--surface-2:#F4F7F8;
+  --ink:#111A21;--ink-2:#4C5E6B;--ink-3:#7C8D99;
+  --line:#D5DEE3;--line-soft:#E4EBEF;
+  --accent:#A9540F;--accent-ink:#8A4409;--accent-soft:#F6E7D8;
+  --critical:#9E2618;--critical-soft:#F7E0DC;
+  --warn:#7E5804;--warn-soft:#F7EBD2;
+  --ok:#1A6650;--ok-soft:#DDEEE7;
+  --shadow:0 1px 2px rgba(17,26,33,.05), 0 8px 24px -16px rgba(17,26,33,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1317;--surface:#141E24;--surface-2:#1A252C;
+    --ink:#E8EFF3;--ink-2:#9FB1BC;--ink-3:#758895;
+    --line:#25333C;--line-soft:#1E2B33;
+    --accent:#E08A42;--accent-ink:#EDA265;--accent-soft:#2C1D11;
+    --critical:#E47766;--critical-soft:#301A16;
+    --warn:#D9A945;--warn-soft:#2B2210;
+    --ok:#54BE97;--ok-soft:#122B23;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1317;--surface:#141E24;--surface-2:#1A252C;
+  --ink:#E8EFF3;--ink-2:#9FB1BC;--ink-3:#758895;
+  --line:#25333C;--line-soft:#1E2B33;
+  --accent:#E08A42;--accent-ink:#EDA265;--accent-soft:#2C1D11;
+  --critical:#E47766;--critical-soft:#301A16;
+  --warn:#D9A945;--warn-soft:#2B2210;
+  --ok:#54BE97;--ok-soft:#122B23;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans Thai","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.72;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(24px,5vw,64px) clamp(18px,4vw,40px) 96px}
+
+.doc-head{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:44px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-family:"Noto Serif Thai",Georgia,serif;font-weight:700;font-size:clamp(30px,4.6vw,46px);
+  line-height:1.24;margin:0 0 14px;text-wrap:balance}
+.lede{font-size:17.5px;color:var(--ink-2);max-width:60ch;margin:0 0 26px;font-weight:300}
+.meta{display:flex;flex-wrap:wrap;gap:8px 28px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3)}
+.meta b{color:var(--ink-2);font-weight:500}
+
+section{margin:0 0 56px}
+h2{font-family:"Noto Serif Thai",Georgia,serif;font-size:24px;font-weight:600;line-height:1.35;margin:0 0 6px;text-wrap:balance}
+.sec-note{color:var(--ink-2);font-size:15px;margin:0 0 22px;max-width:62ch;font-weight:300}
+h3{font-size:16px;font-weight:600;margin:30px 0 12px}
+p.body{color:var(--ink-2);max-width:66ch;margin:0 0 16px}
+
+.decisions{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.dec{background:var(--surface);padding:16px 20px;display:grid;gap:4px}
+@media (min-width:680px){.dec{grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:baseline}}
+.dec dt{font-weight:600;font-size:14.5px;color:var(--ink-2)}
+.dec dd{margin:0;font-size:15.5px}
+.dec dd em{font-style:normal;color:var(--ink-3);font-size:14px;display:block;margin-top:2px}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.6px}
+th{text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.mono{font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+td small{display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px}
+
+#index{scroll-margin-top:24px}
+.idx{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.idx a{display:grid;grid-template-columns:76px minmax(0,1fr) 66px;gap:14px;align-items:baseline;
+  background:var(--surface);padding:10px 16px;text-decoration:none;color:inherit}
+.idx a:hover,.idx a:focus{background:var(--surface-2)}
+.idx code{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent-ink)}
+.idx b{font-weight:500;font-size:14.8px}
+.idx b em{font-style:normal;color:var(--ink-3);font-size:13px}
+.idx .ph{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);text-align:right;white-space:nowrap}
+.idx a[data-p="1"] .ph{color:var(--critical)}
+.idx-head{display:grid;grid-template-columns:76px minmax(0,1fr) 66px;gap:14px;padding:0 16px 8px;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.idx-head i{font-style:normal}
+.idx-head i:last-child{text-align:right}
+
+.req{scroll-margin-top:24px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:3px;padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.req[data-p="1"]{border-left-color:var(--critical)}
+.req[data-p="2"]{border-left-color:var(--accent)}
+.req-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.rid{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500;color:var(--accent-ink);
+  background:var(--accent-soft);padding:2px 8px;border-radius:2px}
+.req h4{font-size:17px;font-weight:600;margin:0;flex:1 1 240px;line-height:1.45}
+.chip{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:2px;white-space:nowrap}
+.chip.p1{background:var(--critical-soft);color:var(--critical)}
+.chip.p2{background:var(--warn-soft);color:var(--warn)}
+.back{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);
+  text-decoration:none;white-space:nowrap;border-bottom:1px solid transparent}
+.back:hover,.back:focus{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.req p{margin:0 0 12px;color:var(--ink-2);font-size:15.5px;max-width:66ch}
+.req ul{margin:0 0 12px;padding-left:20px;color:var(--ink-2);font-size:15px}
+.req li{margin-bottom:5px}
+.req > :last-child{margin-bottom:0}
+.accept{background:var(--surface-2);border-radius:2px;padding:12px 16px;margin-top:14px;border-top:1px solid var(--line-soft)}
+.accept b{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ok);margin-bottom:6px;font-weight:500}
+.accept p{margin:0;font-size:14.5px;color:var(--ink-2)}
+
+.mock{font-family:"IBM Plex Mono",monospace;font-size:13.5px;line-height:1.85;background:var(--surface-2);
+  border:1px dashed var(--line);border-radius:3px;padding:16px 18px;margin:0 0 14px;white-space:pre-wrap;
+  color:var(--ink-2);overflow-x:auto}
+.mock strong{color:var(--ink);font-weight:500}
+
+figure{margin:0 0 8px}
+figure svg{width:100%;max-width:100%;height:auto;display:block;color:var(--ink)}
+figcaption{font-size:13.5px;color:var(--ink-3);margin-top:12px;line-height:1.65;max-width:64ch}
+.dg{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:22px 20px;overflow-x:auto}
+svg .n{fill:var(--surface-2);stroke:currentColor;stroke-width:1.1}
+svg .n-q{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+svg text{font-family:"IBM Plex Sans Thai",sans-serif;fill:currentColor}
+svg .tm{font-size:12px;font-weight:600}
+svg .ts{font-size:10.5px;fill:var(--ink-3)}
+svg .tl{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--ink-3)}
+svg .ln{stroke:currentColor;stroke-width:1.2;fill:none}
+
+.log{border-top:1px solid var(--line);padding-top:6px}
+.log-item{display:grid;gap:2px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+@media (min-width:680px){.log-item{grid-template-columns:1fr 200px;gap:24px;align-items:baseline}}
+.log-item b{font-weight:600;font-size:15.5px}
+.log-item span{color:var(--ink-3);font-size:14px}
+.log-item i{font-style:normal;color:var(--ink-2);font-size:14.5px;display:block;margin-top:2px}
+
+.backtop{position:fixed;right:18px;bottom:18px;z-index:5;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:9px 17px;font-size:13px;font-weight:500;color:var(--ink-2);
+  text-decoration:none;box-shadow:var(--shadow);white-space:nowrap}
+.backtop:hover,.backtop:focus{color:var(--accent-ink);border-color:var(--accent)}
+@media print{.backtop,.back{display:none}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-head">
+  <p class="eyebrow">ใบสั่งงาน · โมดูลบุคคล · ฉบับที่ 6</p>
+  <h1>แท็บอนุมัติ — สองสาย สองผู้รับผิดชอบ</h1>
+  <p class="lede">ใบลาจบที่หัวหน้างาน เบี้ยเลี้ยงจบที่ฝ่ายบุคคล ไม่ต้องขึ้นชั้นตามจำนวนวัน และไม่ส่งต่ออัตโนมัติเมื่อค้าง เอกสารนี้เปลี่ยนแท็บอนุมัติจากที่รับแค่ใบลา ให้กลายเป็นจุดเดียวที่รวมทุกเรื่องที่ต้องมีคนที่สองมาเห็น</p>
+  <div class="meta">
+    <span><b>ระบบ</b> smartssolar-tools.duckdns.org</span>
+    <span><b>เมนู</b> อนุมัติ</span>
+    <span><b>รหัสงาน</b> APV-01 ถึง APV-14</span>
+    <span><b>วันที่</b> 31 สิงหาคม 2569</span>
+  </div>
+</header>
+
+<section>
+  <h2>สภาพปัจจุบัน</h2>
+  <p class="sec-note">ตรวจสอบเมื่อ 31 สิงหาคม 2569</p>
+  <p class="body">ทั้งระบบมีของที่อนุมัติได้จริงอยู่<b>อย่างเดียวคือใบลา</b> ส่วนเบี้ยเลี้ยงมีคำว่าส่งเบิกและมีกล่องเบี้ยเลี้ยงรอเบิก แต่ไม่มีใครอนุมัติ มีสถานะเดียวคือรอ แล้วก็ค้างอยู่อย่างนั้น เรื่องอื่นทั้งหมดไม่มีการอนุมัติเลย</p>
+  <p class="body">และระหว่างตรวจสอบพบว่า <b>ค่ากลางเบี้ยเลี้ยง 240 บาทต่อวัน ที่สรุปไว้แล้วว่าผิดหน่วย ถูกใช้เบิกจริงอย่างน้อยสองครั้ง</b> ครั้งล่าสุดคือวันที่ 31 สิงหาคม 2569 เวลา 13:42 นี่เป็นเหตุผลที่ ALW-07 ควรขยับขึ้นมาทำก่อนข้ออื่นในเมนูเบี้ยเลี้ยง ยิ่งช้ายิ่งมีรายการผิดสะสม</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ข้อตกลงที่สรุปแล้ว</h2>
+  <dl class="decisions">
+    <div class="dec"><dt>ชั้นอำนาจมีสองชั้น</dt><dd>หัวหน้างาน และ ผู้บริหาร<em>บริษัทมีพนักงานราว 31 คน ไม่ต้องมีสามชั้น</em></dd></div>
+    <div class="dec"><dt>ผู้อนุมัติผูกกับเรื่อง ไม่ใช่สายบังคับบัญชา</dt><dd>ใบลาไปที่หัวหน้างาน · เบี้ยเลี้ยงไปที่ฝ่ายบุคคล<em>สองสายนี้ไม่ข้ามกัน</em></dd></div>
+    <div class="dec"><dt>ใบลาไม่ต้องขึ้นชั้นตามจำนวนวัน</dt><dd>ลากี่วันก็จบที่หัวหน้างาน</dd></div>
+    <div class="dec"><dt>ไม่ส่งต่ออัตโนมัติเมื่อค้าง</dt><dd>คงสถานะค้างไว้ แล้วเตือนผู้อนุมัติซ้ำ<em>ไม่แอบเปลี่ยนคนอนุมัติโดยที่ไม่มีใครรู้</em></dd></div>
+    <div class="dec"><dt>แก้เช็คอินย้อนหลัง</dt><dd>ภายในวันเดียวกันแก้เองได้ · ข้ามวันต้องให้หัวหน้างานอนุมัติ<em>เพราะกระทบเบี้ยเลี้ยงและสถานะขาดงาน</em></dd></div>
+    <div class="dec"><dt>ผู้อนุมัติผูกกับบทบาทในระบบ</dt><dd>ไม่ผูกกับชื่อคน<em>วันที่คนนั้นลาออก ระบบต้องไม่พัง</em></dd></div>
+    <div class="dec"><dt>ฝ่ายบุคคลมีผู้สำรอง</dt><dd>กันรอบจ่ายค้างทั้งบริษัทเพราะคนเดียวลาหยุด</dd></div>
+    <div class="dec"><dt>รายการเบี้ยเลี้ยงของฝ่ายบุคคลเอง</dt><dd>ขึ้นไปที่ผู้บริหาร<em>ตามกฎห้ามอนุมัติของตัวเอง</em></dd></div>
+    <div class="dec"><dt>รายการที่ติดธงจาก CI-18</dt><dd>ฝ่ายบุคคลเห็นธงแล้วไปสอบถามหัวหน้างานเอง ระบบไม่ต้องทำเส้นทางแยก<em>แลกกับการไม่มีหลักฐานในระบบว่าใครเป็นคนยืนยัน</em></dd></div>
+  </dl>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>สองสายการอนุมัติ</h2>
+  <figure>
+    <div class="dg">
+      <svg viewBox="0 0 880 310" role="img" aria-label="แผนภาพสองสายการอนุมัติ ใบลาและเบี้ยเลี้ยง">
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <text class="tl" x="6" y="18">สายที่ 1 · ใบลา</text>
+        <rect class="n" x="6" y="28" width="150" height="58" rx="3"/>
+        <text class="tm" x="20" y="52">พนักงานยื่น</text>
+        <text class="ts" x="20" y="71">ใบลา</text>
+
+        <rect class="n" x="196" y="28" width="160" height="58" rx="3"/>
+        <text class="tm" x="210" y="52">ระบบตรวจก่อน</text>
+        <text class="ts" x="210" y="71">โควตา วันชน สิทธิ์</text>
+
+        <rect class="n-q" x="396" y="28" width="160" height="58" rx="3"/>
+        <text class="tm" x="410" y="52">หัวหน้างาน</text>
+        <text class="ts" x="410" y="71">ตัดสิน ไม่ขึ้นชั้น</text>
+
+        <rect class="n" x="596" y="28" width="160" height="58" rx="3"/>
+        <text class="tm" x="610" y="52">แจ้งผล</text>
+        <text class="ts" x="610" y="71">ทุกกรณี รวมที่ปฏิเสธ</text>
+
+        <path class="ln" d="M156 57 L196 57" marker-end="url(#ar3)"/>
+        <path class="ln" d="M356 57 L396 57" marker-end="url(#ar3)"/>
+        <path class="ln" d="M556 57 L596 57" marker-end="url(#ar3)"/>
+        <path class="ln" d="M276 86 L276 112 L790 112" marker-end="url(#ar3)" stroke-dasharray="4 3"/>
+        <text class="tl" x="600" y="106">ไม่ผ่าน ตีกลับทันที ไม่กินเวลาหัวหน้า</text>
+
+        <line x1="6" y1="140" x2="874" y2="140" stroke="currentColor" stroke-width="1" opacity=".25"/>
+
+        <text class="tl" x="6" y="170">สายที่ 2 · เบี้ยเลี้ยง</text>
+        <rect class="n" x="6" y="180" width="150" height="58" rx="3"/>
+        <text class="tm" x="20" y="204">ระบบคำนวณ</text>
+        <text class="ts" x="20" y="223">จากเช็คอินรายวัน</text>
+
+        <rect class="n" x="196" y="180" width="160" height="58" rx="3"/>
+        <text class="tm" x="210" y="204">พนักงานยืนยัน</text>
+        <text class="ts" x="210" y="223">ทั้งรอบ 16 ถึง 15</text>
+
+        <rect class="n-q" x="396" y="180" width="160" height="58" rx="3"/>
+        <text class="tm" x="410" y="204">ฝ่ายบุคคล</text>
+        <text class="ts" x="410" y="223">อนุมัติ แล้วปิดรอบ</text>
+
+        <rect class="n" x="596" y="180" width="160" height="58" rx="3"/>
+        <text class="tm" x="610" y="204">ส่งฝ่ายบัญชี</text>
+        <text class="ts" x="610" y="223">รอบล็อก แก้ไม่ได้</text>
+
+        <path class="ln" d="M156 209 L196 209" marker-end="url(#ar3)"/>
+        <path class="ln" d="M356 209 L396 209" marker-end="url(#ar3)"/>
+        <path class="ln" d="M556 209 L596 209" marker-end="url(#ar3)"/>
+        <path class="ln" d="M476 238 L476 266 L680 266" marker-end="url(#ar3)" stroke-dasharray="4 3"/>
+        <text class="tl" x="6" y="290">รายการของฝ่ายบุคคลเอง และการปรับยอดด้วยมือ ขึ้นไปที่ผู้บริหาร</text>
+        <text class="tl" x="690" y="270">ผู้บริหาร</text>
+      </svg>
+    </div>
+    <figcaption>สองสายนี้ไม่ข้ามกัน หัวหน้างานไม่เห็นเบี้ยเลี้ยง และฝ่ายบุคคลไม่อนุมัติใบลา ข้อดีคือชัดเจนและไม่มีใครโยนกัน ข้อแลกเปลี่ยนคือคนที่รู้ความจริงหน้างานไม่ได้อยู่ในสายเบี้ยเลี้ยง จึงต้องอาศัยธงเตือนและการสอบถามนอกระบบ</figcaption>
+  </figure>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ตารางอำนาจอนุมัติ</h2>
+  <p class="sec-note">ตารางนี้ต้องเป็นค่าตั้งค่าที่แก้ได้ ไม่ใช่เขียนตายในโค้ด เพราะบริษัทจะโตและชั้นอำนาจจะเปลี่ยน</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>เรื่องที่ต้องอนุมัติ</th><th>ผู้อนุมัติ</th><th>ผู้สำรอง</th><th>ข้อยกเว้น</th></tr></thead>
+      <tbody>
+        <tr><td>ใบลา ทุกประเภท ทุกจำนวนวัน</td><td>หัวหน้างานของผู้ยื่น</td><td>ผู้อนุมัติสำรองที่ตั้งไว้ ถ้าไม่มีไปที่ฝ่ายบุคคล ตาม J4 แก้ 1 ก.ย. 2569</td><td>ประเภทที่กฎหมายห้ามปฏิเสธ ให้เป็นรับทราบ ปฏิเสธไม่ได้</td></tr>
+        <tr><td>ยกเลิกใบลาที่อนุมัติไปแล้ว</td><td>หัวหน้างาน</td><td>เหมือนใบลา</td><td>คืนโควตาให้อัตโนมัติเมื่ออนุมัติการยกเลิก</td></tr>
+        <tr><td>แก้ไขเช็คอินข้ามวัน</td><td>หัวหน้างาน</td><td>เหมือนใบลา</td><td>แก้ภายในวันเดียวกันไม่ต้องอนุมัติ</td></tr>
+        <tr><td>วันชดเชยจากทำงานวันหยุดหรือนอกเวลา</td><td>หัวหน้างาน</td><td>เหมือนใบลา</td><td>เพราะเป็นการสร้างสิทธิ์วันลาขึ้นมาใหม่</td></tr>
+        <tr><td>เบี้ยเลี้ยงรายรอบ</td><td><b>ฝ่ายบุคคล</b></td><td>ฝ่ายบุคคลสำรอง</td><td>รายการของฝ่ายบุคคลเอง ขึ้นไปที่ผู้บริหาร</td></tr>
+        <tr><td>ปิดรอบจ่ายเบี้ยเลี้ยง</td><td><b>ฝ่ายบุคคล</b></td><td>ฝ่ายบุคคลสำรอง</td><td>ต้องเคลียร์รายการค้างให้หมดก่อน</td></tr>
+        <tr><td>ปรับยอดเบี้ยเลี้ยงด้วยมือ</td><td>ผู้บริหาร</td><td>—</td><td>ต้องมีเหตุผล และเก็บทั้งยอดคำนวณและยอดที่ปรับ</td></tr>
+        <tr><td>ยกเว้นการเช็คอินเป็นรายบุคคล</td><td>ผู้บริหาร</td><td>—</td><td>มีผลถาวรจนกว่าจะยกเลิก</td></tr>
+        <tr><td>แก้สิทธิ์วันลารายคน</td><td>ผู้บริหาร</td><td>—</td><td></td></tr>
+        <tr><td>แก้อัตราเบี้ยเลี้ยงรายไซต์</td><td>ผู้บริหาร</td><td>—</td><td>กระทบเงินของทุกคนในไซต์นั้นทุกวัน</td></tr>
+        <tr><td>ประกาศปฏิทินทำงานทั้งปี</td><td>ผู้บริหาร</td><td>—</td><td>เป็นฐานของวันหยุด วันชดเชย และสถานะรายวันทั้งระบบ</td></tr>
+        <tr><td>เปลี่ยนบทบาทผู้ใช้</td><td>ผู้บริหาร</td><td>—</td><td>คนที่เป็นแอดมินแก้ได้ทุกอย่าง</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>สิ่งที่จงใจไม่ให้ต้องอนุมัติ</h3>
+  <p class="body">เปลี่ยนลักษณะการไปงานจากค่าตั้งต้นตาม CI-18 ไม่ต้องยื่นขออนุมัติแยก ให้ติดธงไว้ในรายการแล้วฝ่ายบุคคลเห็นตอนอนุมัติรอบ · การแปลงสถานที่อื่นเป็นโครงการจริงตาม CI-17 เป็นงานธุรการ ไม่เปลี่ยนเงิน · การเช็คอินประจำวันไม่ต้องอนุมัติ</p>
+  <p class="body">เหตุผลคือ <b>ถ้าใส่การอนุมัติกับทุกอย่าง คนอนุมัติจะกดผ่านรวดโดยไม่อ่าน แล้วการอนุมัติทั้งระบบจะไร้ความหมาย</b> ของที่ควรอนุมัติคือของที่เปลี่ยนเงิน เปลี่ยนสิทธิ์ หรือเปลี่ยนประวัติที่ปิดไปแล้ว</p>
+</section>
+
+<hr class="rule">
+
+<section id="index">
+  <h2>สารบัญงาน</h2>
+  <div class="idx-head"><i>รหัส</i><i>หัวข้อ</i><i>รอบ</i></div>
+  <nav class="idx">
+    <a href="#APV-01" data-p="1"><code>APV-01</code><b>ตารางอำนาจอนุมัติเป็นค่าตั้งค่า <em>ฐานของทุกข้อ</em></b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-02" data-p="1"><code>APV-02</code><b>ผู้อนุมัติผูกกับบทบาท และมีผู้สำรอง</b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-03" data-p="1"><code>APV-03</code><b>ห้ามอนุมัติของตัวเอง</b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-04" data-p="1"><code>APV-04</code><b>ขั้นตรวจอัตโนมัติก่อนถึงคน <em>ประหยัดเวลาผู้อนุมัติที่สุด</em></b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-05" data-p="1"><code>APV-05</code><b>หน้าอนุมัติรวม แสดงเฉพาะที่ตัวเองมีอำนาจ</b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-06" data-p="1"><code>APV-06</code><b>ปฏิเสธต้องมีเหตุผล และแจ้งทันที</b><span class="ph">รอบ 1</span></a>
+    <a href="#APV-07" data-p="2"><code>APV-07</code><b>สถานะค้างและการเตือนซ้ำ <em>ไม่ส่งต่ออัตโนมัติ</em></b><span class="ph">รอบ 2</span></a>
+    <a href="#APV-08" data-p="2"><code>APV-08</code><b>เพดานใบลาค้างและการคืนโควตา</b><span class="ph">รอบ 2</span></a>
+    <a href="#APV-09" data-p="2"><code>APV-09</code><b>หน้าอนุมัติเบี้ยเลี้ยงรายรอบสำหรับฝ่ายบุคคล</b><span class="ph">รอบ 2</span></a>
+    <a href="#APV-10" data-p="2"><code>APV-10</code><b>อนุมัติแก้เช็คอินข้ามวัน และวันชดเชย</b><span class="ph">รอบ 2</span></a>
+    <a href="#APV-11" data-p="2"><code>APV-11</code><b>เรื่องที่ต้องขึ้นผู้บริหาร</b><span class="ph">รอบ 2</span></a>
+    <a href="#APV-12" data-p="3"><code>APV-12</code><b>อนุมัติหลายรายการพร้อมกันอย่างปลอดภัย</b><span class="ph">รอบ 3</span></a>
+    <a href="#APV-13" data-p="3"><code>APV-13</code><b>บันทึกการอนุมัติที่ลบไม่ได้</b><span class="ph">รอบ 3</span></a>
+    <a href="#APV-14" data-p="3"><code>APV-14</code><b>แจ้งเตือนและใช้งานบนมือถือ</b><span class="ph">รอบ 3</span></a>
+  </nav>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>รายละเอียดงาน</h2>
+
+  <article class="req" id="APV-01" data-p="1">
+    <div class="req-top"><span class="rid">APV-01</span><h4>ตารางอำนาจอนุมัติเป็นค่าตั้งค่า</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>สร้างตารางกลางที่บอกว่าเรื่องแต่ละชนิดใครเป็นผู้อนุมัติ ใครเป็นผู้สำรอง และมีข้อยกเว้นอะไร ใช้ค่าตั้งต้นตามตารางในเอกสารนี้</p>
+    <ul>
+      <li>เพิ่มชนิดเรื่องใหม่ได้โดยไม่ต้องแก้โค้ด เพราะจะมีเรื่องใหม่แน่นอนเมื่อทำเมนูใบเซอร์และรายงาน</li>
+      <li>ทุกที่ในระบบที่ถามว่าใครอนุมัติเรื่องนี้ ต้องถามตารางนี้ที่เดียว ห้ามเขียนเงื่อนไขซ้ำในหน้าอื่น</li>
+      <li>บันทึกว่าใครแก้ตารางนี้เมื่อไหร่ เพราะการแก้ตารางนี้คือการเปลี่ยนอำนาจ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เปลี่ยนผู้อนุมัติเบี้ยเลี้ยงในหน้าตั้งค่า แล้วรายการที่ยื่นใหม่วิ่งไปหาคนใหม่ทันที โดยไม่ต้องแก้โค้ดหรือรีสตาร์ท</p></div>
+  </article>
+
+  <article class="req" id="APV-02" data-p="1">
+    <div class="req-top"><span class="rid">APV-02</span><h4>ผู้อนุมัติผูกกับบทบาท และมีผู้สำรอง</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ตารางอำนาจต้องอ้างถึงบทบาท เช่น หัวหน้างานของผู้ยื่น หรือ ฝ่ายบุคคล ไม่ใช่อ้างชื่อคน เพราะวันที่คนนั้นลาออกหรือย้ายตำแหน่ง ระบบจะต้องไม่พัง</p>
+    <ul>
+      <li>ผู้สำรองทำงานเมื่อผู้อนุมัติหลักกำลังลา ไม่อยู่ หรือเป็นผู้ยื่นเอง</li>
+      <li>ฝ่ายบุคคลต้องมีผู้สำรองเสมอ มิฉะนั้นวันที่คนเดียวลาหยุด รอบจ่ายจะค้างทั้งบริษัท</li>
+      <li>ถ้าไม่มีทั้งหลักและสำรอง ให้ไปที่ผู้บริหาร และขึ้นเตือนให้แอดมินตั้งค่าให้ครบ</li>
+      <li>เมื่อผู้สำรองเป็นคนกด ต้องบันทึกว่าเป็นการอนุมัติแทน พร้อมเหตุผลว่าทำไมถึงเป็นผู้สำรอง</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ตั้งให้ผู้อนุมัติหลักลาในช่วงหนึ่ง แล้วยื่นเรื่องในช่วงนั้น เรื่องต้องวิ่งไปหาผู้สำรองเองโดยไม่มีใครสั่ง และบันทึกแสดงว่าเป็นการอนุมัติแทน</p></div>
+  </article>
+
+  <article class="req" id="APV-03" data-p="1">
+    <div class="req-top"><span class="rid">APV-03</span><h4>ห้ามอนุมัติของตัวเอง</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ถ้าผู้ยื่นเป็นผู้อนุมัติของเรื่องนั้นเอง ให้ขึ้นไปอีกหนึ่งชั้นอัตโนมัติ</p>
+    <ul>
+      <li>หัวหน้างานยื่นใบลาเอง ไปที่ผู้บริหาร</li>
+      <li>ฝ่ายบุคคลยื่นเบี้ยเลี้ยงของตัวเอง ไปที่ผู้บริหาร</li>
+      <li>กติกานี้มีผลเหนือทุกกติกาอื่น ห้ามมีทางไหนที่ทำให้คนกดอนุมัติเรื่องของตัวเองได้ รวมถึงทางแอดมิน</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ล็อกอินเป็นฝ่ายบุคคล ยื่นเบี้ยเลี้ยงของตัวเอง แล้วรายการนั้นต้องไม่ปรากฏในคิวของตัวเอง แต่ไปปรากฏในคิวของผู้บริหาร</p></div>
+  </article>
+
+  <article class="req" id="APV-04" data-p="1">
+    <div class="req-top"><span class="rid">APV-04</span><h4>ขั้นตรวจอัตโนมัติก่อนถึงคน</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ระบบตอนนี้ไม่มีขั้นนี้เลย และนี่คือขั้นที่ประหยัดเวลาผู้อนุมัติมากที่สุด เรื่องที่ผิดกติกาชัดเจนไม่ควรไปถึงคนตั้งแต่แรก ให้ตีกลับทันทีพร้อมบอกเหตุผลที่ผู้ยื่นแก้ไขเองได้</p>
+    <p>สิ่งที่ต้องตรวจก่อน</p>
+    <ul>
+      <li>ใบลา โควตาพอไหม ทับกับใบที่อนุมัติแล้วไหม ยื่นย้อนหลังเกินกำหนดไหม เป็นวันหยุดตามปฏิทินหรือเปล่า</li>
+      <li>เบี้ยเลี้ยง วันนั้นมีเช็คอินจริงไหม ชนกับใบลาที่อนุมัติแล้วไหม ไซต์มีอัตราแล้วหรือยัง</li>
+      <li>แก้เช็คอิน อยู่ในรอบที่ปิดไปแล้วหรือเปล่า</li>
+    </ul>
+    <p>การตีกลับในขั้นนี้ไม่ถือเป็นการปฏิเสธ ให้เป็นสถานะแยกว่า ตีกลับให้แก้ไข เพื่อไม่ให้ปนกับการที่หัวหน้าไม่อนุมัติจริง ๆ</p>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ยื่นใบลาที่โควตาไม่พอ ต้องถูกตีกลับทันทีโดยไม่เข้าคิวของหัวหน้าเลย และข้อความบอกชัดว่าขาดอีกกี่วัน</p></div>
+  </article>
+
+  <article class="req" id="APV-05" data-p="1">
+    <div class="req-top"><span class="rid">APV-05</span><h4>หน้าอนุมัติรวม แสดงเฉพาะที่ตัวเองมีอำนาจ</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>แท็บอนุมัติกลายเป็นกล่องขาเข้าอันเดียว แยกกลุ่มตามชนิดเรื่อง และแสดงเฉพาะเรื่องที่คนที่ล็อกอินอยู่มีอำนาจตัดสินจริงตามตารางใน APV-01</p>
+    <ul>
+      <li>หัวหน้างานเห็นใบลา การแก้เช็คอิน และวันชดเชยของลูกทีม แต่ไม่เห็นเบี้ยเลี้ยงของใครเลย</li>
+      <li><strong>ฝ่ายบุคคลมีเฉพาะเบี้ยเลี้ยงรายรอบอยู่ในคิวอนุมัติ ไม่มีใบลา</strong> ยกเว้นใบที่ตกมาแบบ fallback (J4) และคิว “รอตรวจสอบ” (CI-14) ซึ่งกดได้</li>
+      <li><strong>ฝ่ายบุคคลเห็นใบลาที่รออนุมัติได้แบบอ่านอย่างเดียว</strong> <em>(เพิ่ม 1 ก.ย. 2569)</em> — ต้องแยกให้ชัดว่าเป็นมุมมองข้อมูล ไม่ใช่คิวงาน · <strong>ไม่มีปุ่มอนุมัติ ปฏิเสธ หรือเร่งรัดถึงพนักงานโดยตรง</strong> ถ้าจะเร่งให้เร่งผ่านหัวหน้างาน</li>
+      <li><strong>ฝ่ายบุคคลเห็นโควตา ยอดคงเหลือ และประวัติการลาที่อนุมัติแล้วของทุกคน</strong> ในฐานะผู้ดูแลข้อมูลบุคคล ไม่ใช่ในฐานะผู้อนุมัติ</li>
+      <li>ผู้บริหารเห็นทั้งหมด บวกเรื่องที่ขึ้นมาถึงตัวเอง</li>
+      <li>แต่ละกลุ่มแสดงจำนวนที่ค้างเป็นตัวเลขให้เห็นตั้งแต่ยังไม่กดเข้าไป</li>
+      <li>เรียงตามความเร่งด่วน ไม่ใช่เรียงตามเวลาที่ยื่น เรื่องที่ใกล้ถึงวันลาต้องอยู่บนสุด</li>
+      <li>กดเข้าไปดูรายละเอียดได้โดยไม่ต้องออกจากหน้านี้</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ล็อกอินด้วยบัญชีหัวหน้างานแล้วไม่พบรายการเบี้ยเลี้ยงของใครเลย ทั้งในหน้าจอและในข้อมูลที่ส่งมาจากหลังบ้าน · ล็อกอินด้วยบัญชีฝ่ายบุคคลแล้วเห็นใบลาที่รออนุมัติได้ แต่<strong>ไม่มีปุ่มอนุมัติหรือปฏิเสธในทุกใบ ยกเว้นใบที่ตกมาแบบ fallback</strong> และปุ่มนั้นต้องไม่โผล่มาจากการยิง API ตรงด้วย</p></div>
+  </article>
+
+  <article class="req" id="APV-06" data-p="1">
+    <div class="req-top"><span class="rid">APV-06</span><h4>ปฏิเสธต้องมีเหตุผล และแจ้งทันที</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ข้อนี้ไม่ใช่เรื่องมารยาท แต่เป็นเรื่องที่กระทบสถานะรายวันโดยตรง เราตกลงกันไว้ใน CI-14 แล้วว่า ถ้าใบลาถูกปฏิเสธก่อนถึงวันลาแต่พนักงานไม่รู้ แล้ววันนั้นเขาไม่มาทำงาน เขาจะกลายเป็นขาดงานทันที</p>
+    <ul>
+      <li>ปฏิเสธโดยไม่กรอกเหตุผลไม่ได้</li>
+      <li>ต้องแจ้งผู้ยื่นทันทีที่กด ไม่ใช่รอให้เขาเข้ามาดูเอง</li>
+      <li>ถ้าใบลาที่ถูกปฏิเสธมีวันลาที่ใกล้ถึงภายในไม่กี่วัน ให้เน้นการแจ้งเป็นพิเศษ</li>
+      <li>ประเภทการลาที่กฎหมายห้ามปฏิเสธ ต้องไม่มีปุ่มปฏิเสธให้กดตั้งแต่แรก ให้เหลือแค่ปุ่มรับทราบ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ปุ่มปฏิเสธกดไม่ได้จนกว่าจะกรอกเหตุผล และเปิดใบลาประเภทที่ห้ามปฏิเสธแล้วไม่มีปุ่มปฏิเสธปรากฏเลย</p></div>
+  </article>
+
+  <article class="req" id="APV-07" data-p="2">
+    <div class="req-top"><span class="rid">APV-07</span><h4>สถานะค้างและการเตือนซ้ำ</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ผู้บริหารเลือกแล้วว่า <b>ไม่ให้ส่งต่ออัตโนมัติ</b> เรื่องที่ค้างให้คงค้างไว้กับคนเดิม แล้วเตือนซ้ำ ข้อดีคือไม่มีการเปลี่ยนคนอนุมัติโดยที่ไม่มีใครรู้ ข้อแลกเปลี่ยนคือเรื่องอาจค้างนาน จึงต้องทำให้การค้างมองเห็นได้ชัด</p>
+    <ul>
+      <li>เตือนผู้อนุมัติซ้ำตามรอบที่ตั้งค่าได้ ค่าตั้งต้นแนะนำวันละครั้ง</li>
+      <li>ใบลาที่ใกล้ถึงวันลาต้องเตือนถี่ขึ้นและขึ้นเป็นสีเตือนในหน้าอนุมัติ</li>
+      <li>แสดงอายุของเรื่องเป็นจำนวนวันในทุกแถว เพื่อให้เห็นว่าค้างมานานแค่ไหน</li>
+      <li>ทำรายงานหนึ่งหน้าให้ผู้บริหารเห็นว่าใครมีเรื่องค้างกี่เรื่องและนานเท่าไหร่ นี่คือทางที่ผู้บริหารจะเข้าไปแก้ปัญหาเอง แทนการให้ระบบส่งต่ออัตโนมัติ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ทิ้งเรื่องไว้ไม่กด ผู้อนุมัติต้องได้รับการเตือนซ้ำ และเรื่องนั้นต้องไม่ย้ายไปหาใครเองโดยเด็ดขาด</p></div>
+  </article>
+
+  <article class="req" id="APV-08" data-p="2">
+    <div class="req-top"><span class="rid">APV-08</span><h4>เพดานใบลาค้างและการคืนโควตา</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ข้อนี้มาจากความขัดแย้งที่พบระหว่างสองการตัดสินใจ ตอนคุยเมนูลาเราเคาะว่าใบลาที่เลยวันลาไปแล้วให้เป็นสถานะ ตกไป และคืนโควตาอัตโนมัติ แต่ตอนคุยเรื่องอนุมัติเคาะว่าให้คงสถานะค้างไว้ สองอันนี้ขัดกัน</p>
+    <p>ทางออกที่เสนอคือ <b>คงค้างไว้ แต่มีเพดาน</b> ใบลาที่เลยวันลาไปแล้วเกินจำนวนวันที่ตั้งไว้ ให้เปลี่ยนเป็นตกไปและคืนโควตา ค่าตั้งต้นแนะนำ 30 วัน และต้องตั้งค่าได้</p>
+    <ul>
+      <li>เหตุผลคือถ้าค้างตลอดไป โควตาจะถูกจองค้างไว้เรื่อย ๆ ทำให้คนยื่นใบใหม่ไม่ได้ทั้งที่วันลายังเหลือ</li>
+      <li>เมื่อตกไปต้องแจ้งทั้งผู้ยื่นและผู้อนุมัติ ไม่ใช่หายไปเงียบ ๆ</li>
+      <li>ต้องแยกสถานะ ตกไป ออกจาก ไม่อนุมัติ ให้ชัดในรายงาน เพราะสาเหตุต่างกันคนละเรื่อง</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ปล่อยใบลาค้างจนเลยวันลาและเลยเพดาน โควตาต้องกลับคืนมาให้ผู้ยื่นครบ และมีการแจ้งทั้งสองฝ่าย</p></div>
+  </article>
+
+  <article class="req" id="APV-09" data-p="2">
+    <div class="req-top"><span class="rid">APV-09</span><h4>หน้าอนุมัติเบี้ยเลี้ยงรายรอบสำหรับฝ่ายบุคคล</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ฝ่ายบุคคลไม่ควรต้องกดทีละวันทีละคน หน้านี้ต้องมองเป็นรอบ</p>
+    <ul>
+      <li>แสดงรายชื่อพนักงานทั้งหมดในรอบ พร้อมยอดรวมของแต่ละคน และจำนวนวันที่ติดปัญหา</li>
+      <li>รายการที่ติดธงตาม CI-18 คือรายการที่เปลี่ยนลักษณะการไปงานจากค่าตั้งต้น ต้องขึ้นสีให้เห็นชัดพร้อมเหตุผลที่พนักงานกรอก เพราะฝ่ายบุคคลไม่ได้อยู่หน้างานและต้องใช้ข้อมูลนี้ตัดสินใจว่าจะไปถามหัวหน้าหรือไม่</li>
+      <li>อนุมัติได้ทั้งรอบของคนหนึ่ง หรือตัดบางวันออกพร้อมเหตุผล</li>
+      <li>ปุ่มปิดรอบต้องกดไม่ได้จนกว่าจะไม่มีรายการค้าง และต้องแสดงยอดรวมทั้งบริษัทให้ยืนยันก่อนกด</li>
+      <li>ปิดรอบแล้วล็อก การแก้ย้อนหลังหลังจากนั้นให้ไปเป็นรายการปรับปรุงในรอบถัดไปตาม ALW-12</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ฝ่ายบุคคลปิดรอบทั้งบริษัทได้ในหน้าจอเดียว และปุ่มปิดรอบกดไม่ได้เมื่อยังมีรายการค้างอยู่แม้แต่รายการเดียว</p></div>
+  </article>
+
+  <article class="req" id="APV-10" data-p="2">
+    <div class="req-top"><span class="rid">APV-10</span><h4>อนุมัติแก้เช็คอินข้ามวัน และวันชดเชย</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>สองเรื่องนี้เป็นของใหม่ที่ไม่เคยมีการอนุมัติมาก่อน ทั้งคู่ไปที่หัวหน้างาน</p>
+    <ul>
+      <li><b>แก้เช็คอินข้ามวัน</b> ต้องแสดงให้ผู้อนุมัติเห็นทั้งค่าเดิมและค่าใหม่ พร้อมบอกว่าการแก้นี้จะทำให้เบี้ยเลี้ยงเปลี่ยนไปกี่บาท และสถานะรายวันเปลี่ยนจากอะไรเป็นอะไร ถ้าไม่บอก ผู้อนุมัติจะกดผ่านโดยไม่รู้ผลกระทบ</li>
+      <li><b>วันชดเชย</b> ต้องแสดงว่าจะได้กี่วัน หมดอายุเมื่อไหร่ และปัจจุบันคนนั้นมีวันชดเชยค้างอยู่เท่าไหร่แล้ว</li>
+      <li>ทั้งสองเรื่องถ้าอยู่ในรอบจ่ายที่ปิดไปแล้ว ต้องขึ้นเตือนว่าจะกลายเป็นรายการปรับปรุงในรอบถัดไป</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เปิดคำขอแก้เช็คอินแล้วเห็นทั้งค่าเดิม ค่าใหม่ ส่วนต่างเป็นบาท และสถานะรายวันที่จะเปลี่ยน ครบทั้งสี่อย่างในหน้าเดียว</p></div>
+  </article>
+
+  <article class="req" id="APV-11" data-p="2">
+    <div class="req-top"><span class="rid">APV-11</span><h4>เรื่องที่ต้องขึ้นผู้บริหาร</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ห้าเรื่องนี้ปัจจุบันแอดมินทำได้เองทั้งหมดโดยไม่มีใครเห็น ทั้งที่กระทบทั้งบริษัท ต้องมีคนที่สอง</p>
+    <ul>
+      <li>แก้อัตราเบี้ยเลี้ยงรายไซต์ กระทบเงินของทุกคนในไซต์นั้นทุกวัน</li>
+      <li>ประกาศปฏิทินทำงานทั้งปี เป็นฐานของวันหยุด วันชดเชย และสถานะรายวันทั้งระบบ อนุมัติครั้งเดียวตอนประกาศ ไม่ต้องอนุมัติรายวัน</li>
+      <li>แก้สิทธิ์วันลารายคน</li>
+      <li>ยกเว้นการเช็คอินเป็นรายบุคคล มีผลถาวรจนกว่าจะยกเลิก</li>
+      <li>เปลี่ยนบทบาทผู้ใช้ โดยเฉพาะการตั้งใครเป็นแอดมิน</li>
+    </ul>
+    <p>สำคัญที่สุดในข้อนี้คือ <b>ต้องแยกให้ชัดระหว่างสิทธิ์แก้ข้อมูลกับสิทธิ์อนุมัติ</b> แอดมินคือผู้ดูแลข้อมูล ไม่ใช่ผู้อนุมัติ ถ้าคนเดียวกันทำได้ทั้งสองอย่าง การอนุมัติก็ไม่มีความหมาย</p>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ล็อกอินเป็นแอดมินแล้วแก้อัตราเบี้ยเลี้ยงของไซต์หนึ่ง ค่าต้องยังไม่มีผลจนกว่าผู้บริหารจะอนุมัติ และระหว่างรอต้องแสดงว่าเป็นค่าที่รออนุมัติอยู่</p></div>
+  </article>
+
+  <article class="req" id="APV-12" data-p="3">
+    <div class="req-top"><span class="rid">APV-12</span><h4>อนุมัติหลายรายการพร้อมกันอย่างปลอดภัย</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ฝ่ายบุคคลที่ต้องอนุมัติเบี้ยเลี้ยง 31 คนทุกรอบ ถ้ากดทีละคนจะไม่มีใครทำจริง แต่การกดรวดก็เสี่ยงที่จะผ่านของที่ไม่ควรผ่าน</p>
+    <ul>
+      <li>เลือกหลายรายการแล้วอนุมัติพร้อมกันได้ <b>เฉพาะรายการที่ไม่ติดธงและผ่านการตรวจอัตโนมัติแล้ว</b></li>
+      <li>รายการที่ติดธงต้องกดทีละรายการเสมอ เลือกรวมไม่ได้</li>
+      <li>ก่อนยืนยันต้องสรุปให้เห็นว่ากำลังจะอนุมัติกี่รายการ รวมเป็นเงินเท่าไหร่</li>
+      <li>ปฏิเสธหลายรายการพร้อมกันไม่ได้ เพราะแต่ละรายการต้องมีเหตุผลของตัวเอง</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เลือกทั้งหน้าแล้วกดอนุมัติรวม รายการที่ติดธงต้องถูกกันออกและยังค้างอยู่ พร้อมข้อความบอกว่ากันออกกี่รายการเพราะอะไร</p></div>
+  </article>
+
+  <article class="req" id="APV-13" data-p="3">
+    <div class="req-top"><span class="rid">APV-13</span><h4>บันทึกการอนุมัติที่ลบไม่ได้</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ทุกการตัดสินต้องบันทึก ใคร เมื่อไหร่ ตัดสินว่าอะไร ด้วยเหตุผลอะไร และตอนนั้นเห็นข้อมูลชุดไหน</p>
+    <ul>
+      <li>บันทึกลบไม่ได้และแก้ไม่ได้ แม้แต่แอดมิน</li>
+      <li>เก็บสำเนาข้อมูลที่ผู้อนุมัติเห็น ณ เวลานั้น เพราะข้อมูลต้นทางอาจถูกแก้ทีหลัง</li>
+      <li>ถ้าเป็นการอนุมัติแทนโดยผู้สำรอง ต้องระบุว่าแทนใครและเพราะอะไร</li>
+      <li>เปิดดูประวัติของแต่ละเรื่องได้ตั้งแต่ยื่นจนจบ เป็นเส้นเวลา</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เปิดใบลาที่จบไปแล้วหนึ่งใบ เห็นเส้นเวลาครบทุกขั้นพร้อมชื่อคนและเวลา และไม่มีทางใดในระบบที่ลบบรรทัดในเส้นเวลานี้ได้</p></div>
+  </article>
+
+  <article class="req" id="APV-14" data-p="3">
+    <div class="req-top"><span class="rid">APV-14</span><h4>แจ้งเตือนและใช้งานบนมือถือ</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>หัวหน้างานอยู่หน้างาน ไม่ได้นั่งหน้าคอม ถ้าอนุมัติจากมือถือไม่ได้ เรื่องจะค้างจนกว่าจะกลับออฟฟิศ ซึ่งขัดกับการที่เราเลือกไม่ส่งต่ออัตโนมัติ</p>
+    <ul>
+      <li>แจ้งเตือนเมื่อมีเรื่องเข้ามาใหม่ และเตือนซ้ำเมื่อค้าง ใช้ช่องทางเดียวกับ LV-10</li>
+      <li>กดจากการแจ้งเตือนแล้วเข้าไปที่เรื่องนั้นได้ทันที ไม่ใช่เข้าไปที่หน้าแรกแล้วหาเอง</li>
+      <li>หน้าอนุมัติต้องใช้ได้จริงบนจอมือถือ เห็นข้อมูลที่ต้องใช้ตัดสินใจโดยไม่ต้องเลื่อนไปมา</li>
+      <li>การปฏิเสธบนมือถือต้องกรอกเหตุผลได้สะดวก มิฉะนั้นคนจะเลี่ยงไปกดอนุมัติแทน</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>อนุมัติและปฏิเสธใบลาจบได้บนมือถือโดยไม่ต้องเปิดคอมพิวเตอร์ และเห็นเหตุผลกับข้อมูลประกอบครบในหน้าจอเดียว</p></div>
+  </article>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>สิ่งที่ต้องแก้ในเอกสารเดิม</h2>
+  <div class="log">
+    <div class="log-item"><b>ALW-11 ผู้อนุมัติเบี้ยเลี้ยง<i>เดิมเขียนว่าใช้คนเดียวกับผู้อนุมัติใบลาของพนักงานคนนั้น ซึ่งผิดแล้ว ต้องเปลี่ยนเป็นฝ่ายบุคคล พร้อมผู้สำรอง และรายการของฝ่ายบุคคลเองขึ้นไปที่ผู้บริหาร</i></b><span>ต้องแก้</span></div>
+    <div class="log-item"><b>BR-12 สถานะใบลา ตกไป<i>เดิมเขียนว่าเลยวันลาแล้วให้ตกไปและคืนโควตาทันที ตอนนี้เปลี่ยนเป็นคงค้างไว้จนถึงเพดานที่ตั้งไว้ตาม APV-08 ค่าตั้งต้นแนะนำ 30 วันหลังวันลา</i></b><span>ต้องแก้</span></div>
+    <div class="log-item"><b>LV-11 เตือนใบลาค้างและส่งต่ออัตโนมัติ<i>ตัดส่วนส่งต่ออัตโนมัติออก เหลือเฉพาะการเตือนซ้ำ ตามที่ผู้บริหารเลือกใน APV-07</i></b><span>ลดขอบเขต</span></div>
+    <div class="log-item"><b>ALW-07 ลบค่ากลาง 240 บาทต่อวัน<i>พบว่าค่านี้ถูกใช้เบิกจริงแล้วอย่างน้อยสองครั้ง ครั้งล่าสุด 31 ส.ค. 2569 ควรขยับขึ้นมาทำก่อนข้ออื่นในเมนูเบี้ยเลี้ยง</i></b><span>เลื่อนลำดับขึ้น</span></div>
+    <div class="log-item"><b>รายการที่เบิกไปแล้วด้วยค่ากลาง 240<i>ต้องตรวจสอบและปรับให้ตรงกับอัตราจริงก่อนปิดรอบแรก มิฉะนั้นรอบแรกจะมีตัวเลขที่ผิดปนอยู่</i></b><span>งานฝ่ายบุคคล</span></div>
+    <div class="log-item"><b>แท็บอนุมัติของจริงยังอ่านเนื้อหาไม่ได้<i>กดเข้าไปแล้วหน้าไม่แสดงเนื้อหาให้ระบบอ่าน อาจเพราะไม่มีรายการค้าง หรือหน้าไม่โหลด ผู้พัฒนาควรตรวจสอบว่าเป็นบั๊กหรือเป็นสภาพว่างปกติ</i></b><span>ต้องตรวจสอบ</span></div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ผลกระทบข้ามเมนู</h2>
+  <p class="sec-note">เพิ่มย้อนหลังเมื่อ 1 กันยายน 2569 ตามคำสั่งโปรเจกต์ · รหัสของกลางอ้างจากไฟล์ สัญญากลาง-โมดูลบุคคล</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>รหัส</th><th>ของกลาง</th><th>งานนี้ทำอะไรกับมัน</th><th>รายละเอียด</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">S2</td><td>สายอนุมัติและผู้สำรอง</td><td>เป็นเจ้าของ</td><td>งานนี้คือแหล่งความจริงของ S2 · ทุกเมนูต้องถามตารางอำนาจใน APV-01 ห้ามเขียนเงื่อนไขเอง</td></tr>
+        <tr><td class="mono">S1</td><td>ทะเบียนพนักงาน</td><td>ใช้</td><td>ตารางอำนาจอ้างบทบาท ไม่ใช่ชื่อคน · หัวหน้างานของผู้ยื่นมาจากที่นี่</td></tr>
+        <tr><td class="mono">S6</td><td>ระบบแจ้งเตือน</td><td>ใช้</td><td>APV-06 แจ้งผลปฏิเสธทันที · APV-07 เตือนซ้ำเมื่อค้าง · APV-14 กดจากการแจ้งเตือนเข้าเรื่องได้เลย</td></tr>
+        <tr><td class="mono">S7</td><td>audit log</td><td>ใช้</td><td>APV-13 บันทึกการอนุมัติลบไม่ได้ และเก็บสำเนาข้อมูลที่ผู้อนุมัติเห็น ณ เวลานั้น</td></tr>
+        <tr><td class="mono">S8</td><td>สิทธิ์ตามบทบาท</td><td>ใช้ และแก้</td><td>APV-11 แยกสิทธิ์แก้ข้อมูลออกจากสิทธิ์อนุมัติ · แอดมินไม่ใช่ผู้อนุมัติ</td></tr>
+        <tr><td class="mono">S15</td><td>โควตาวันลา</td><td>ใช้</td><td>APV-11 การแก้สิทธิ์วันลารายคนต้องผ่านผู้บริหาร</td></tr>
+        <tr><td class="mono">S18</td><td>รอบตัดจ่าย</td><td>ใช้</td><td>APV-09 ปิดรอบจ่ายเป็นการอนุมัติชนิดหนึ่ง</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>จุดเชื่อมที่เกี่ยวข้อง</h3>
+  <ul>
+    <li><b>J1</b> — APV-04 ขั้นตรวจอัตโนมัติต้องเช็คว่าวันนั้นชนกับใบลาที่อนุมัติแล้วหรือไม่</li>
+    <li><b>J4</b> — งานนี้เป็นเจ้าของกติกา J4 · เคาะเมื่อ 1 ก.ย. 2569 ว่าผู้สำรองเว้นว่างให้ตกไปที่ฝ่ายบุคคล</li>
+    <li><b>J5</b> — APV-07 ข้อยกเว้นเดียวของการไม่ส่งต่ออัตโนมัติ คือผู้อนุมัติพ้นสภาพ</li>
+    <li><b>J7</b> — APV-14 ใช้ช่องทางแจ้งเตือนเดียวกับ LV-10 ห้ามสร้างช่องทางแยก</li>
+  </ul>
+
+  <h3>เมนูที่ต้องเปิดแชทตามแก้</h3>
+  <p class="body">ลา · เบี้ยเลี้ยง · เช็คอิน · ใบเซอร์ · Staff/Account · โครงการ/ไซต์งาน · เครื่องมือ</p>
+
+  <h3>ตารางข้อ 5 ของสัญญากลาง</h3>
+  <p class="body">เติมครบแล้วเมื่อ 1 กันยายน 2569 ดูรายการทั้งหมดในไฟล์สัญญากลาง หัวข้อ บันทึกการเปลี่ยนของกลาง</p>
+</section>
+
+<a class="backtop" href="#index">↑ สารบัญ</a>
+
+</div>
+</body>
+</html>

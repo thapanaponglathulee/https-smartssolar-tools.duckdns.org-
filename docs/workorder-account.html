@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบสั่งงาน Staff / Account Solar Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Noto+Serif+Thai:wght@500;600;700&display=swap">
+
+<style>
+:root{
+  --bg:#EDF1F3;--surface:#FFFFFF;--surface-2:#F4F7F8;
+  --ink:#111A21;--ink-2:#4C5E6B;--ink-3:#7C8D99;
+  --line:#D5DEE3;--line-soft:#E4EBEF;
+  --accent:#A9540F;--accent-ink:#8A4409;--accent-soft:#F6E7D8;
+  --critical:#9E2618;--critical-soft:#F7E0DC;
+  --warn:#7E5804;--warn-soft:#F7EBD2;
+  --ok:#1A6650;--ok-soft:#DDEEE7;
+  --shadow:0 1px 2px rgba(17,26,33,.05), 0 8px 24px -16px rgba(17,26,33,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1317;--surface:#141E24;--surface-2:#1A252C;
+    --ink:#E8EFF3;--ink-2:#9FB1BC;--ink-3:#758895;
+    --line:#25333C;--line-soft:#1E2B33;
+    --accent:#E08A42;--accent-ink:#EDA265;--accent-soft:#2C1D11;
+    --critical:#E47766;--critical-soft:#301A16;
+    --warn:#D9A945;--warn-soft:#2B2210;
+    --ok:#54BE97;--ok-soft:#122B23;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1317;--surface:#141E24;--surface-2:#1A252C;
+  --ink:#E8EFF3;--ink-2:#9FB1BC;--ink-3:#758895;
+  --line:#25333C;--line-soft:#1E2B33;
+  --accent:#E08A42;--accent-ink:#EDA265;--accent-soft:#2C1D11;
+  --critical:#E47766;--critical-soft:#301A16;
+  --warn:#D9A945;--warn-soft:#2B2210;
+  --ok:#54BE97;--ok-soft:#122B23;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans Thai","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.72;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(24px,5vw,64px) clamp(18px,4vw,40px) 96px}
+
+.doc-head{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:44px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-family:"Noto Serif Thai",Georgia,serif;font-weight:700;font-size:clamp(30px,4.6vw,46px);
+  line-height:1.24;margin:0 0 14px;text-wrap:balance}
+.lede{font-size:17.5px;color:var(--ink-2);max-width:60ch;margin:0 0 26px;font-weight:300}
+.meta{display:flex;flex-wrap:wrap;gap:8px 28px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3)}
+.meta b{color:var(--ink-2);font-weight:500}
+
+section{margin:0 0 56px}
+h2{font-family:"Noto Serif Thai",Georgia,serif;font-size:24px;font-weight:600;line-height:1.35;margin:0 0 6px;text-wrap:balance}
+.sec-note{color:var(--ink-2);font-size:15px;margin:0 0 22px;max-width:62ch;font-weight:300}
+h3{font-size:16px;font-weight:600;margin:30px 0 12px}
+p.body{color:var(--ink-2);max-width:66ch;margin:0 0 16px}
+
+.decisions{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.dec{background:var(--surface);padding:16px 20px;display:grid;gap:4px}
+@media (min-width:680px){.dec{grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:baseline}}
+.dec dt{font-weight:600;font-size:14.5px;color:var(--ink-2)}
+.dec dd{margin:0;font-size:15.5px}
+.dec dd em{font-style:normal;color:var(--ink-3);font-size:14px;display:block;margin-top:2px}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.6px}
+th{text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.mono{font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+td small{display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px}
+td.num{font-family:"IBM Plex Mono",monospace;text-align:right;white-space:nowrap}
+
+#index{scroll-margin-top:24px}
+.idx{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.idx a{display:grid;grid-template-columns:76px minmax(0,1fr) 66px;gap:14px;align-items:baseline;
+  background:var(--surface);padding:10px 16px;text-decoration:none;color:inherit}
+.idx a:hover,.idx a:focus{background:var(--surface-2)}
+.idx code{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent-ink)}
+.idx b{font-weight:500;font-size:14.8px}
+.idx b em{font-style:normal;color:var(--ink-3);font-size:13px}
+.idx .ph{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);text-align:right;white-space:nowrap}
+.idx a[data-p="1"] .ph{color:var(--critical)}
+.idx-head{display:grid;grid-template-columns:76px minmax(0,1fr) 66px;gap:14px;padding:0 16px 8px;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.idx-head i{font-style:normal}
+.idx-head i:last-child{text-align:right}
+
+.req{scroll-margin-top:24px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:3px;padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.req[data-p="1"]{border-left-color:var(--critical)}
+.req[data-p="2"]{border-left-color:var(--accent)}
+.req-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.rid{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500;color:var(--accent-ink);
+  background:var(--accent-soft);padding:2px 8px;border-radius:2px}
+.req h4{font-size:17px;font-weight:600;margin:0;flex:1 1 240px;line-height:1.45}
+.chip{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:2px;white-space:nowrap}
+.chip.p1{background:var(--critical-soft);color:var(--critical)}
+.chip.p2{background:var(--warn-soft);color:var(--warn)}
+.back{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);
+  text-decoration:none;white-space:nowrap;border-bottom:1px solid transparent}
+.back:hover,.back:focus{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.req p{margin:0 0 12px;color:var(--ink-2);font-size:15.5px;max-width:66ch}
+.req ul{margin:0 0 12px;padding-left:20px;color:var(--ink-2);font-size:15px}
+.req li{margin-bottom:5px}
+.req > :last-child{margin-bottom:0}
+.accept{background:var(--surface-2);border-radius:2px;padding:12px 16px;margin-top:14px;border-top:1px solid var(--line-soft)}
+.accept b{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ok);margin-bottom:6px;font-weight:500}
+.accept p{margin:0;font-size:14.5px;color:var(--ink-2)}
+
+figure{margin:0 0 8px}
+figure svg{width:100%;max-width:100%;height:auto;display:block;color:var(--ink)}
+figcaption{font-size:13.5px;color:var(--ink-3);margin-top:12px;line-height:1.65;max-width:64ch}
+.dg{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:22px 20px;overflow-x:auto}
+svg .n{fill:var(--surface-2);stroke:currentColor;stroke-width:1.1}
+svg .n-q{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+svg .n-x{fill:var(--critical-soft);stroke:var(--critical);stroke-width:1.2}
+svg text{font-family:"IBM Plex Sans Thai",sans-serif;fill:currentColor}
+svg .tm{font-size:12px;font-weight:600}
+svg .ts{font-size:10.5px;fill:var(--ink-3)}
+svg .tl{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--ink-3)}
+svg .ln{stroke:currentColor;stroke-width:1.2;fill:none}
+
+.log{border-top:1px solid var(--line);padding-top:6px}
+.log-item{display:grid;gap:2px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+@media (min-width:680px){.log-item{grid-template-columns:1fr 200px;gap:24px;align-items:baseline}}
+.log-item b{font-weight:600;font-size:15.5px}
+.log-item span{color:var(--ink-3);font-size:14px}
+.log-item i{font-style:normal;color:var(--ink-2);font-size:14.5px;display:block;margin-top:2px}
+
+.callout{background:var(--warn-soft);border:1px solid var(--warn);border-radius:3px;padding:16px 20px;margin:0 0 22px}
+.callout p{margin:0;color:var(--ink);font-size:15px}
+.callout p + p{margin-top:10px}
+.callout b{font-weight:600}
+
+.backtop{position:fixed;right:18px;bottom:18px;z-index:5;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:9px 17px;font-size:13px;font-weight:500;color:var(--ink-2);
+  text-decoration:none;box-shadow:var(--shadow);white-space:nowrap}
+.backtop:hover,.backtop:focus{color:var(--accent-ink);border-color:var(--accent)}
+@media print{.backtop,.back{display:none}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-head">
+  <p class="eyebrow">ใบสั่งงาน · โมดูลบุคคล · ฉบับที่ 8</p>
+  <h1>Staff / Account — ที่อยู่ของของกลางทั้งโมดูล</h1>
+  <p class="lede">ทุกเมนูที่ปิดไปแล้วถามคำถามเดียวกันกับหน้านี้ ใครเป็นใคร ใครเป็นหัวหน้าใคร ใครมีสิทธิ์อะไร ตอนนี้หน้านี้ตอบไม่ได้ทั้งสามข้อ เอกสารนี้เปลี่ยน Staff / Account จากทะเบียนรายชื่อ ให้กลายเป็นแหล่งความจริงที่เมนูอื่นอ้างได้</p>
+  <div class="meta">
+    <span><b>ระบบ</b> smartssolar-tools.duckdns.org</span>
+    <span><b>เมนู</b> Staff / Account</span>
+    <span><b>รหัสงาน</b> ACC-01 ถึง ACC-16</span>
+    <span><b>วันที่</b> 31 สิงหาคม 2569</span>
+  </div>
+</header>
+
+<section>
+  <h2>เรื่องที่ต้องรู้ก่อนอ่าน</h2>
+  <p class="body">ใบนี้อ้างรหัสของกลาง <b>S1–S14</b> และจุดเชื่อม <b>J1–J7</b> ตามไฟล์ <span class="mono">สัญญากลาง-โมดูลบุคคล_2569-08-31.md</span> ในโฟลเดอร์ HR ไม่ใช่ชุดรหัสที่ตั้งขึ้นใหม่</p>
+  <div class="callout">
+    <p><b>Staff / Account เป็นเจ้าของของกลางสองรายการที่ทุกเมนูใช้</b> — S1 ทะเบียนพนักงาน และ S8 สิทธิ์ตามบทบาท ในตารางผลกระทบของสัญญากลาง สองแถวนี้เป็น ● ครบทั้งสิบเมนู ไม่มีแถวอื่นที่เป็นแบบนั้นนอกจาก S14</p>
+    <p>แปลว่าเกือบทุกข้อในใบนี้เปลี่ยนของกลาง และต้องมีเมนูตามแก้ ดูหัวข้อผลกระทบข้ามเมนูท้ายเอกสาร ซึ่งมีข้อความสำหรับเติมตารางข้อ 5 ของสัญญากลางมาให้แล้ว</p>
+  </div>
+  <p class="body">รหัสงานในใบนี้ใช้ <b>ACC-</b> ไม่ใช่ STF- โดยตั้งใจ เพราะ STF-xxx เป็นรหัสพนักงานจริงในระบบอยู่แล้ว ถ้าใช้ซ้ำกันจะสับสนตอนสั่งงานและตอนอ่าน log</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>สภาพปัจจุบัน</h2>
+  <p class="sec-note">เข้าไปดูระบบจริงเมื่อ 31 สิงหาคม 2569 · Admin Panel → Staff / Account · มีพนักงาน 31 รายการ</p>
+
+  <h3>บทบาทมีสี่ค่า และไม่มีสองบทบาทที่ใบอนุมัติต้องใช้</h3>
+  <p class="body">ป้ายที่แสดงบนหน้าจอกับค่าที่เก็บจริงในระบบเป็นคนละคำกัน ซึ่งทำให้คุยกันคนละเรื่องได้ง่ายมาก</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>ป้ายที่ผู้ใช้เห็น</th><th>ค่าที่เก็บจริง</th><th>จำนวน</th><th>หมายเหตุ</th></tr></thead>
+      <tbody>
+        <tr><td>ผู้ใช้งานทั่วไป</td><td class="mono">ช่างเทคนิค</td><td class="num">23</td><td>ค่าที่เก็บบอกว่าเป็นช่างเทคนิค ทั้งที่ในนี้มีทั้งจัดซื้อ ประสานงาน และโยธา</td></tr>
+        <tr><td>ผู้ใช้งานและอนุมัติ</td><td class="mono">หัวหน้างาน</td><td class="num">2</td><td>ศรายุทธ แสนแก้ว · ณัฐพงษ์ หาระมาร</td></tr>
+        <tr><td>ผู้ใช้งานและผู้จัดการ</td><td class="mono">ผู้จัดการ</td><td class="num">2</td><td>ดร.จักรกฤษณ์ · รัชนี ขันแข็ง</td></tr>
+        <tr><td>Admin</td><td class="mono">แอดมิน</td><td class="num">4</td><td>Athit · อชิดา · บุณฑริก · ฐาปนพงษ์</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body" style="margin-top:16px"><b>ไม่มีบทบาทฝ่ายบุคคล และไม่มีบทบาทผู้บริหาร</b> ซึ่งเป็นสองบทบาทที่ใบสั่งงานอนุมัติทั้งใบยืนอยู่บน APV-01 บอกว่าเบี้ยเลี้ยงไปฝ่ายบุคคล และมีหกเรื่องที่ต้องขึ้นผู้บริหาร แต่ระบบไม่มีวิธีบอกว่าใครคือสองคนนี้</p>
+
+  <h3>คนที่ต้องอนุมัติเบี้ยเลี้ยงทั้งบริษัท ระบบไม่รู้จัก</h3>
+  <p class="body">รัชนี ขันแข็ง (STF-024) เป็นฝ่ายบุคคล สิ่งเดียวในระบบที่บอกได้คือข้อความอิสระในช่องแผนกว่า <span class="mono">HR</span> · หัวหน้างานว่าง · ผู้อนุมัติการลาว่าง · โควตาลาว่าง <b>ถ้าเขียนโค้ดให้เบี้ยเลี้ยงวิ่งไปหาฝ่ายบุคคลวันนี้ ระบบต้องเดาจากข้อความสองตัวอักษร</b></p>
+
+  <h3>มีสามช่องผู้อนุมัติซ้อนกันอยู่ในโปรไฟล์</h3>
+  <p class="body">โปรไฟล์พนักงานหนึ่งคนมีช่อง หัวหน้างาน · ผู้อนุมัติการลา · ผู้อนุมัติการยืม แยกกันสามช่อง ตัวอย่างจริงคือ ปฏิภาณ กุลบก (STF-014) ที่ตั้งหัวหน้างานเป็นศรายุทธ และตั้งผู้อนุมัติการลาเป็นศรายุทธคนเดียวกัน ซ้ำกันเอง <b>นี่คือรูปแบบเมนูเก็บสำเนาของกลางไว้เอง ซึ่งขัดกับ APV-01 ที่บอกว่าทุกที่ต้องถามตารางอำนาจที่เดียว</b></p>
+
+  <h3>ช่องตำแหน่งว่างทั้ง 31 คน</h3>
+  <p class="body">ดรอปดาวน์ตำแหน่งมี 13 ค่ารออยู่ แต่ไม่มีใครเลือกเลยสักคน ทุกคนไปกรอกตำแหน่งลงในช่องแผนกซึ่งเป็นข้อความอิสระแทน ผลคือเรื่องเดียวกันสะกดสี่แบบ</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>ค่าที่กรอกในช่องแผนก</th><th>จำนวนคน</th><th>ปัญหา</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Project Manager</td><td class="num">13</td><td>เป็นตำแหน่ง ไม่ใช่แผนก · และบริษัท 31 คนมี Project Manager 13 คนจริงหรือ ต้องให้ฝ่ายบุคคลยืนยัน</td></tr>
+        <tr><td class="mono">Project-Coordination</td><td class="num">6</td><td rowspan="3">สามบรรทัดนี้คือเรื่องเดียวกัน สะกดคนละแบบ รวม 9 คน</td></tr>
+        <tr><td class="mono">Project-Co.</td><td class="num">2</td></tr>
+        <tr><td class="mono">Project Management</td><td class="num">1</td></tr>
+        <tr><td class="mono">Opeartion&amp;Maintenance</td><td class="num">3</td><td>สะกดผิด ควรเป็น Operation</td></tr>
+        <tr><td class="mono">Purchasing</td><td class="num">1</td><td>ตรงกับดรอปดาวน์</td></tr>
+        <tr><td class="mono">HR</td><td class="num">1</td><td>ตรงกับดรอปดาวน์ และเป็นคนเดียวกับผู้อนุมัติเบี้ยเลี้ยงทั้งบริษัท</td></tr>
+        <tr><td class="mono">Civil</td><td class="num">1</td><td><b>ไม่มีค่านี้ในดรอปดาวน์ 13 ค่า</b> ต้องเพิ่ม</td></tr>
+        <tr><td class="mono">Admin</td><td class="num">1</td><td rowspan="3">สามบรรทัดนี้ไม่ใช่พนักงานจริง</td></tr>
+        <tr><td class="mono">Demo</td><td class="num">1</td></tr>
+        <tr><td>ว่าง</td><td class="num">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body" style="margin-top:16px">ในทางกลับกัน มีตำแหน่งในดรอปดาวน์ที่ไม่มีใครใช้เลย 8 ค่า — Engineer · Design · Technician · Accounting · Storekeeper · Consult Eng · MD · Head of Project Co. <b>ทั้งสองด้านนี้แปลว่ารายงานที่จัดกลุ่มตามตำแหน่งหรือแผนก วันนี้เชื่อถือไม่ได้เลย</b></p>
+
+  <h3>เรื่องอื่นที่พบ</h3>
+  <ul style="color:var(--ink-2);max-width:68ch;padding-left:20px">
+    <li><b>ปุ่มลบ Staff</b> ขัดกับกฎของโปรเจกต์ที่ว่าห้ามลบข้อมูลจริง และไม่มีสถานะพ้นสภาพให้ใช้แทน</li>
+    <li><b>Staff ID กรอกเอง</b> และตอนกดเพิ่ม ระบบเสนอ <span class="mono">STF-002</span> ซึ่งเป็นเลขที่หายไปจากลำดับ แปลว่าเอาเลขของคนเก่ามาใช้ซ้ำ ประวัติเช็คอิน ใบลา และใบเซอร์จะพันกับคนใหม่</li>
+    <li><b>บัญชีทดสอบยังอยู่ในระบบจริง</b> — STF-011 ผู้ใช้งาน ทดสอบ (<span class="mono">demo</span>) และ STF-000 Athit ที่เป็น Admin · STF-001 ใช้ username ว่า <span class="mono">admin</span></li>
+    <li><b>ไม่มีวันเริ่มงาน</b> ทั้งที่โควตาลาพักร้อนตามกฎหมายคิดจากอายุงาน</li>
+    <li><b>ไม่มีสถานะพนักงาน</b> ระบบแยกคนที่ทำงานอยู่กับคนที่ออกไปแล้วไม่ได้</li>
+    <li><b>โควตาวันลาแก้ได้ตรงหน้านี้เลย</b> ทั้งที่ APV-11 บอกว่าเป็นเรื่องที่ต้องผ่านผู้บริหาร</li>
+    <li><b>แอดมินตั้งรหัสผ่านคนอื่นได้</b> โดยไม่ต้องรู้รหัสเดิม ช่องบอกว่าเว้นว่างถ้าไม่เปลี่ยน และไม่มีอะไรแจ้งเจ้าตัว</li>
+    <li><b>การ์ดนับด้านบนผิด</b> แสดงผู้ใช้ทั่วไป 25 คน ทั้งที่นับจากตารางได้ 23 คน เพราะเอาหัวหน้างาน 2 คนไปรวม และไม่มีการ์ดของหัวหน้างานเลย</li>
+  </ul>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ข้อตกลงที่สรุปแล้ว</h2>
+  <dl class="decisions">
+    <div class="dec"><dt>แยกสิทธิ์ออกจากตำแหน่ง</dt><dd>ตำแหน่งคือหน้าที่ · สิทธิ์คือสิ่งที่ระบบยอมให้ทำ ติ๊กได้หลายอัน<em>คนหนึ่งเป็นทั้งหัวหน้างานและฝ่ายบุคคลได้ ซึ่งบริษัท 31 คนเกิดขึ้นจริงอยู่แล้ว</em></dd></div>
+    <div class="dec"><dt>เหลือช่องหัวหน้างานช่องเดียว</dt><dd>ตัดผู้อนุมัติการลาและผู้อนุมัติการยืมออก<em>ให้ตารางอำนาจตาม APV-01 เป็นคนตัดสินว่าเรื่องไหนไปหาใคร</em></dd></div>
+    <div class="dec"><dt>ผู้อนุมัติสำรองเก็บที่ตารางอำนาจ</dt><dd>ตั้งเป็นรายบทบาท ไม่ใช่รายคน<em>ข้อแลกเปลี่ยน — ผู้สำรองของหัวหน้างานจะเป็นคนเดียวกันทั้งบริษัท อาจไม่รู้จักทีมที่ตัวเองอนุมัติแทน</em></dd></div>
+    <div class="dec"><dt>ตำแหน่งและแผนกเป็นดรอปดาวน์</dt><dd>ตั้งค่าได้ทั้งคู่ ห้ามพิมพ์อิสระ และต้องล้างข้อมูลเก่าทั้ง 31 แถว</dd></div>
+    <div class="dec"><dt>เลิกลบ ใช้สถานะแทน</dt><dd>ทดลองงาน · ประจำ · พ้นสภาพ · ระงับการใช้<em>ชื่อยังอยู่ในประวัติเช็คอิน ใบลา และเบี้ยเลี้ยง แต่ล็อกอินไม่ได้และหายจากดรอปดาวน์</em></dd></div>
+    <div class="dec"><dt>โควตาวันลาเข้าคิวอนุมัติ</dt><dd>แอดมินแก้ที่หน้านี้ได้ แต่ค่ายังไม่มีผลจนผู้บริหารอนุมัติ<em>ตรงกับ APV-11</em></dd></div>
+    <div class="dec"><dt>พนักงานแก้โปรไฟล์ตัวเองได้บางส่วน</dt><dd>เบอร์โทร · อีเมล · รูปโปรไฟล์ · รหัสผ่านตัวเอง<em>บทบาท ตำแหน่ง หัวหน้างาน โควตา แก้เองไม่ได้</em></dd></div>
+    <div class="dec"><dt>ฟิลด์ใหม่ที่ต้องเพิ่ม</dt><dd>วันเริ่มงาน · สถานะพนักงาน<em>ยังไม่เอาผู้ติดต่อฉุกเฉินและเลขบัตรประชาชนในรอบนี้</em></dd></div>
+  </dl>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ตำแหน่งกับสิทธิ์ แยกกันอย่างไร</h2>
+  <figure>
+    <div class="dg">
+      <svg viewBox="0 0 880 330" role="img" aria-label="แผนภาพแยกตำแหน่งออกจากสิทธิ์ และส่งต่อไปยังตารางอำนาจอนุมัติ">
+        <defs>
+          <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <text class="tl" x="6" y="18">วันนี้ — ปนกันอยู่ในช่องเดียว</text>
+        <rect class="n-x" x="6" y="28" width="290" height="62" rx="3"/>
+        <text class="tm" x="22" y="52">ช่องแผนก (พิมพ์อิสระ)</text>
+        <text class="ts" x="22" y="72">Project Manager · HR · Civil · Demo · Admin</text>
+
+        <rect class="n-x" x="330" y="28" width="200" height="62" rx="3"/>
+        <text class="tm" x="346" y="52">ช่องตำแหน่ง</text>
+        <text class="ts" x="346" y="72">ว่างทั้ง 31 คน</text>
+
+        <rect class="n-x" x="564" y="28" width="310" height="62" rx="3"/>
+        <text class="tm" x="580" y="52">ช่องผู้อนุมัติ 3 ช่อง</text>
+        <text class="ts" x="580" y="72">หัวหน้างาน · อนุมัติลา · อนุมัติยืม</text>
+
+        <line x1="6" y1="118" x2="874" y2="118" stroke="currentColor" stroke-width="1" opacity=".25"/>
+
+        <text class="tl" x="6" y="148">หลังแก้ — สามชั้น แต่ละชั้นตอบคนละคำถาม</text>
+
+        <rect class="n" x="6" y="158" width="200" height="70" rx="3"/>
+        <text class="tm" x="22" y="182">ตำแหน่ง + แผนก</text>
+        <text class="ts" x="22" y="201">ดรอปดาวน์ ตั้งค่าได้</text>
+        <text class="ts" x="22" y="217">ใช้จัดกลุ่มในรายงาน</text>
+
+        <rect class="n-q" x="246" y="158" width="220" height="70" rx="3"/>
+        <text class="tm" x="262" y="182">สิทธิ์ (ติ๊กหลายอัน)</text>
+        <text class="ts" x="262" y="201">หัวหน้างาน · ฝ่ายบุคคล</text>
+        <text class="ts" x="262" y="217">ผู้บริหาร · แอดมิน</text>
+
+        <rect class="n" x="506" y="158" width="180" height="70" rx="3"/>
+        <text class="tm" x="522" y="182">สายหัวหน้างาน</text>
+        <text class="ts" x="522" y="201">ช่องเดียว ชี้ไปที่คน</text>
+        <text class="ts" x="522" y="217">ที่มีสิทธิ์หัวหน้างาน</text>
+
+        <rect class="n-q" x="726" y="158" width="148" height="70" rx="3"/>
+        <text class="tm" x="742" y="182">ตารางอำนาจ</text>
+        <text class="ts" x="742" y="201">APV-01</text>
+        <text class="ts" x="742" y="217">ของกลาง S4</text>
+
+        <path class="ln" d="M466 193 L506 193" marker-end="url(#ar4)"/>
+        <path class="ln" d="M686 193 L726 193" marker-end="url(#ar4)"/>
+        <path class="ln" d="M356 228 L356 262 L800 262 L800 232" marker-end="url(#ar4)" stroke-dasharray="4 3"/>
+        <text class="tl" x="366" y="256">สิทธิ์บอกว่าใครมีสิทธิ์เป็นผู้อนุมัติได้บ้าง</text>
+
+        <path class="ln" d="M800 90 L800 128" marker-end="url(#ar4)" stroke-dasharray="4 3" opacity=".5"/>
+        <text class="tl" x="6" y="300">เมนูลา เบี้ยเลี้ยง เช็คอิน ใบเซอร์ ยืมเครื่องมือ ถามตารางอำนาจอย่างเดียว ไม่ถามโปรไฟล์พนักงานตรง ๆ</text>
+        <text class="tl" x="6" y="318">Staff / Account มีหน้าที่ทำให้สามชั้นซ้ายมือถูกต้องและครบ ไม่มีหน้าที่ตัดสินว่าใครอนุมัติเรื่องไหน</text>
+      </svg>
+    </div>
+    <figcaption>หัวใจของการแยกคือ Staff / Account ตอบว่า “คนคนนี้เป็นใคร และมีสิทธิ์อะไร” ส่วนตารางอำนาจตอบว่า “เรื่องชนิดนี้ใครตัดสิน” สองคำถามนี้เปลี่ยนคนละจังหวะกัน ถ้าเก็บรวมไว้ที่เดียว วันที่เปลี่ยนกติกาการอนุมัติจะต้องไล่แก้โปรไฟล์ทีละ 31 คน</figcaption>
+  </figure>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ชุดสิทธิ์ที่เสนอ</h2>
+  <p class="sec-note">ติ๊กได้หลายอันต่อคน ทุกคนมีสิทธิ์พื้นฐานอยู่แล้วโดยไม่ต้องติ๊ก</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>สิทธิ์</th><th>ทำอะไรได้</th><th>ควรมีกี่คน</th><th>ใครควรได้ตอนเริ่ม</th></tr></thead>
+      <tbody>
+        <tr><td>พื้นฐาน<small>ทุกคนได้อัตโนมัติ</small></td><td>เช็คอิน ยื่นใบลา ยืนยันเบี้ยเลี้ยงของตัวเอง ดูและแก้โปรไฟล์ตัวเองบางส่วน</td><td class="num">31</td><td>ทุกคน</td></tr>
+        <tr><td><b>หัวหน้างาน</b></td><td>อนุมัติใบลา แก้เช็คอินข้ามวัน และวันชดเชย ของคนที่ชี้มาหาตัวเอง</td><td class="num">อย่างน้อย 3</td><td>ศรายุทธ · ณัฐพงษ์ · และคนที่ฝ่ายบุคคลยืนยันเพิ่ม</td></tr>
+        <tr><td><b>ฝ่ายบุคคล</b></td><td>อนุมัติเบี้ยเลี้ยงรายรอบ ปิดรอบจ่าย ดูทะเบียนพนักงานทั้งหมด</td><td class="num">2</td><td>รัชนี ขันแข็ง + ผู้สำรองอีกหนึ่งคน ซึ่ง<b>ยังไม่มี</b></td></tr>
+        <tr><td><b>ผู้บริหาร</b></td><td>อนุมัติหกเรื่องตาม APV-11 · ดูรายงานเรื่องค้างทั้งบริษัท</td><td class="num">1 ถึง 2</td><td>ต้องระบุ · ปัจจุบันระบบไม่มีใครถือสิทธิ์นี้</td></tr>
+        <tr><td><b>แอดมิน</b></td><td>แก้ข้อมูลทะเบียน ตั้งค่าระบบ<br><b>ไม่ใช่ผู้อนุมัติ</b> ตาม APV-11</td><td class="num">2</td><td>ทบทวนจาก 4 คนปัจจุบัน · Athit เป็นบัญชีที่ต้องตรวจก่อน</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body" style="margin-top:16px"><b>ข้อสังเกตที่ต้องตัดสินใจ</b> — ฝ่ายบุคคลมีคนเดียว และ APV-02 บอกว่าฝ่ายบุคคลต้องมีผู้สำรองเสมอ มิฉะนั้นวันที่รัชนีลาหยุด รอบจ่ายค้างทั้งบริษัท ตอนนี้ยังไม่มีชื่อผู้สำรอง เรื่องนี้เป็นเรื่องคน ไม่ใช่เรื่องโค้ด และต้องเคาะก่อนเปิดใช้เมนูเบี้ยเลี้ยง</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ฟิลด์ในโปรไฟล์ ก่อนและหลัง</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>ฟิลด์</th><th>วันนี้</th><th>หลังแก้</th><th>ใครแก้ได้</th></tr></thead>
+      <tbody>
+        <tr><td>Staff ID</td><td>พิมพ์เอง เสนอเลขที่ว่าง</td><td>ระบบออกให้ ห้ามใช้ซ้ำ</td><td>ระบบ</td></tr>
+        <tr><td>ชื่อ-นามสกุล</td><td>ข้อความ</td><td>คงเดิม</td><td>แอดมิน</td></tr>
+        <tr><td>Username</td><td>ข้อความ</td><td>คงเดิม · ห้ามซ้ำ</td><td>แอดมิน</td></tr>
+        <tr><td>Password</td><td>แอดมินตั้งทับได้เงียบ ๆ</td><td>ตั้งทับได้ แต่แจ้งเจ้าตัวและลง audit</td><td>เจ้าตัว · แอดมิน</td></tr>
+        <tr><td>บทบาท</td><td>ดรอปดาวน์ 4 ค่า</td><td><b>ตัดออก</b> แทนด้วยชุดสิทธิ์ติ๊กได้</td><td>—</td></tr>
+        <tr><td>สิทธิ์</td><td>ไม่มี</td><td><b>ใหม่</b> ติ๊กได้หลายอัน</td><td>ผู้บริหารอนุมัติ · แอดมินตั้ง</td></tr>
+        <tr><td>ตำแหน่ง</td><td>ดรอปดาวน์ 13 ค่า ว่างทั้งหมด</td><td>ดรอปดาวน์ที่ตั้งค่าได้ · บังคับกรอก</td><td>แอดมิน</td></tr>
+        <tr><td>แผนก / ทีม</td><td>พิมพ์อิสระ สะกด 4 แบบ</td><td>ดรอปดาวน์ที่ตั้งค่าได้ · บังคับกรอก</td><td>แอดมิน</td></tr>
+        <tr><td>เบอร์โทร · อีเมล</td><td>ข้อความ</td><td>คงเดิม</td><td><b>เจ้าตัว</b> · แอดมิน</td></tr>
+        <tr><td>รูปโปรไฟล์</td><td>ไม่มี</td><td><b>ใหม่</b></td><td><b>เจ้าตัว</b> · แอดมิน</td></tr>
+        <tr><td>หัวหน้างาน</td><td>ดรอปดาวน์ · หลายคนยังว่าง</td><td>บังคับกรอก · เลือกได้เฉพาะคนที่มีสิทธิ์หัวหน้างานและยังทำงานอยู่</td><td>แอดมิน</td></tr>
+        <tr><td>ผู้อนุมัติการลา</td><td>ช่องแยก ซ้ำกับหัวหน้างาน</td><td><b>ตัดออก</b></td><td>—</td></tr>
+        <tr><td>ผู้อนุมัติการยืม</td><td>ช่องแยก</td><td><b>ตัดออก</b> ให้ถามตารางอำนาจ</td><td>—</td></tr>
+        <tr><td>โควตาลาพักร้อน/ปี</td><td>แก้ได้ทันที</td><td>แก้ได้ แต่รอผู้บริหารอนุมัติจึงมีผล</td><td>แอดมินเสนอ · ผู้บริหารอนุมัติ</td></tr>
+        <tr><td>วันหยุดชดเชยสะสม</td><td>แก้ได้ทันที</td><td>เหมือนโควตาลา</td><td>แอดมินเสนอ · ผู้บริหารอนุมัติ</td></tr>
+        <tr><td>วันเริ่มงาน</td><td>ไม่มี</td><td><b>ใหม่</b> · บังคับกรอก</td><td>แอดมิน</td></tr>
+        <tr><td>สถานะพนักงาน</td><td>ไม่มี มีแต่ปุ่มลบ</td><td><b>ใหม่</b> ทดลองงาน · ประจำ · พ้นสภาพ · ระงับการใช้</td><td>แอดมิน</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="index">
+  <h2>สารบัญงาน</h2>
+  <div class="idx-head"><i>รหัส</i><i>หัวข้อ</i><i>รอบ</i></div>
+  <nav class="idx">
+    <a href="#ACC-01" data-p="1"><code>ACC-01</code><b>แยกสิทธิ์ออกจากตำแหน่ง <em>ฐานของทุกข้อ</em></b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-02" data-p="1"><code>ACC-02</code><b>สายหัวหน้างานช่องเดียว บังคับกรอก</b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-03" data-p="1"><code>ACC-03</code><b>ตัดผู้อนุมัติการลาและการยืมออกจากโปรไฟล์</b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-04" data-p="1"><code>ACC-04</code><b>สถานะพนักงาน แทนการลบ</b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-05" data-p="1"><code>ACC-05</code><b>Staff ID ระบบออกให้ ห้ามใช้ซ้ำ</b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-06" data-p="1"><code>ACC-06</code><b>ตำแหน่งและแผนกเป็นดรอปดาวน์ที่ตั้งค่าได้</b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-07" data-p="1"><code>ACC-07</code><b>ล้างข้อมูลเก่า 31 แถว <em>งานครั้งเดียว ทำผิดแล้วแก้ยาก</em></b><span class="ph">รอบ 1</span></a>
+    <a href="#ACC-08" data-p="2"><code>ACC-08</code><b>วันเริ่มงาน และผลต่อโควตาลา</b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-09" data-p="2"><code>ACC-09</code><b>โควตาวันลาเข้าคิวรอผู้บริหารอนุมัติ</b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-10" data-p="2"><code>ACC-10</code><b>หน้าโปรไฟล์ของพนักงานเอง</b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-11" data-p="2"><code>ACC-11</code><b>การตั้งรหัสผ่านทับ ต้องแจ้งและบันทึก</b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-12" data-p="2"><code>ACC-12</code><b>บัญชีทดสอบและบัญชีที่ไม่ใช่คน</b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-19" data-p="2"><code>ACC-19</code><b>โหมดดูในมุมมองของบทบาทอื่น <em>เพิ่ม 8 ก.ย.</em></b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-13" data-p="2"><code>ACC-13</code><b>หน้าเตือนข้อมูลไม่ครบ <em>กันเมนูอื่นพังเงียบ ๆ</em></b><span class="ph">รอบ 2</span></a>
+    <a href="#ACC-14" data-p="3"><code>ACC-14</code><b>audit log ของการเปลี่ยนสิทธิ์</b><span class="ph">รอบ 3</span></a>
+    <a href="#ACC-15" data-p="3"><code>ACC-15</code><b>หน้ารายชื่อที่ใช้งานได้จริง และการ์ดนับที่ถูกต้อง</b><span class="ph">รอบ 3</span></a>
+    <a href="#ACC-16" data-p="3"><code>ACC-16</code><b>ขั้นตอนเมื่อคนพ้นสภาพ</b><span class="ph">รอบ 3</span></a>
+  </nav>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>รายละเอียดงาน</h2>
+
+  <article class="req" id="ACC-01" data-p="1">
+    <div class="req-top"><span class="rid">ACC-01</span><h4>แยกสิทธิ์ออกจากตำแหน่ง</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>เลิกใช้ช่องบทบาทเดียวที่มีสี่ค่า เปลี่ยนเป็นชุดสิทธิ์ที่ติ๊กได้หลายอันตามตารางด้านบน</p>
+    <ul>
+      <li>รายการสิทธิ์ต้องเพิ่มได้ในหน้าตั้งค่า ไม่ใช่เขียนตายในโค้ด เพราะจะมีสิทธิ์ใหม่แน่นอนตอนทำเมนูรายงานและโครงการ</li>
+      <li>ป้ายที่แสดงกับค่าที่เก็บต้องเป็นคำเดียวกัน เลิกเก็บ <span class="mono">ช่างเทคนิค</span> ไว้ใต้ป้าย ผู้ใช้งานทั่วไป</li>
+      <li>ย้ายข้อมูลเดิมสี่บทบาทมาเป็นสิทธิ์ให้อัตโนมัติ แล้วให้ฝ่ายบุคคลทวนทีละคน โดยเฉพาะ 23 คนที่ตอนนี้ถูกเก็บว่าเป็นช่างเทคนิคทั้งที่มีทั้งจัดซื้อและโยธาปนอยู่</li>
+      <li>สิทธิ์ผู้บริหารและสิทธิ์แอดมิน ห้ามอยู่ในคนเดียวกันโดยไม่มีการเตือน เพราะ APV-11 แยกสองอย่างนี้ไว้โดยตั้งใจ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ตั้งให้คนหนึ่งถือทั้งสิทธิ์หัวหน้างานและสิทธิ์ฝ่ายบุคคลพร้อมกันได้ และหน้าอนุมัติของคนนั้นแสดงทั้งใบลาของลูกทีมและเบี้ยเลี้ยงรายรอบในหน้าเดียว</p></div>
+  </article>
+
+  <article class="req" id="ACC-02" data-p="1">
+    <div class="req-top"><span class="rid">ACC-02</span><h4>สายหัวหน้างานช่องเดียว บังคับกรอก</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>เหลือช่องหัวหน้างานช่องเดียวในโปรไฟล์ และทำให้เชื่อถือได้ เพราะทั้งเมนูลา เมนูเช็คอิน และเมนูอนุมัติ วิ่งผ่านช่องนี้ทั้งหมด</p>
+    <ul>
+      <li>บังคับกรอก บันทึกโปรไฟล์ไม่ได้ถ้ายังว่าง</li>
+      <li>ดรอปดาวน์แสดงเฉพาะคนที่ถือสิทธิ์หัวหน้างานและสถานะยังทำงานอยู่ ไม่ใช่แสดงทุกคนที่เป็นแอดมินอย่างวันนี้</li>
+      <li>ห้ามชี้มาที่ตัวเอง และห้ามเกิดวงวน เช่น ก เป็นหัวหน้าของ ข แล้ว ข เป็นหัวหน้าของ ก ระบบต้องกันตั้งแต่ตอนบันทึก</li>
+      <li>เปลี่ยนหัวหน้างานของใครแล้ว เรื่องที่ค้างอยู่ในคิวของหัวหน้าคนเดิม<b>ยังอยู่ที่คนเดิม</b> ตามหลักไม่ส่งต่ออัตโนมัติใน APV-07 แต่ต้องขึ้นหมายเหตุให้เห็นว่าคนนี้ย้ายสายไปแล้ว</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ลองตั้งให้ ก เป็นหัวหน้าของ ข และ ข เป็นหัวหน้าของ ก ระบบต้องปฏิเสธพร้อมบอกว่าเป็นวงวน และในดรอปดาวน์ต้องไม่มีชื่อคนที่ไม่มีสิทธิ์หัวหน้างานเลย</p></div>
+  </article>
+
+  <article class="req" id="ACC-03" data-p="1">
+    <div class="req-top"><span class="rid">ACC-03</span><h4>ตัดผู้อนุมัติการลาและการยืมออกจากโปรไฟล์</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>สองช่องนี้คือสำเนาของกลางที่เก็บซ้ำไว้ในโปรไฟล์ ทุกคำถามว่าใครอนุมัติเรื่องไหน ต้องไปถามตารางอำนาจตาม APV-01 ที่เดียว</p>
+    <ul>
+      <li>ก่อนตัด ให้ตรวจก่อนว่ามีใครที่ผู้อนุมัติการลาไม่ตรงกับหัวหน้างานบ้าง ถ้ามีต้องถามฝ่ายบุคคลว่าอันไหนถูก ห้ามเดา</li>
+      <li>ผู้อนุมัติการยืมเครื่องมือให้ย้ายไปเป็นแถวหนึ่งในตารางอำนาจ ไม่ใช่หายไปเฉย ๆ เพราะโมดูลเครื่องมือยังต้องใช้</li>
+      <li>เก็บค่าที่เคยตั้งไว้เป็นบันทึกก่อนลบ เผื่อต้องย้อนดูว่าเดิมตั้งไว้ว่าอะไร</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ค้นทั้งโค้ดแล้วไม่มีที่ไหนอ่านสองฟิลด์นี้อีก และการยืมเครื่องมือยังวิ่งไปหาผู้อนุมัติได้ถูกคนโดยอ่านจากตารางอำนาจ</p></div>
+  </article>
+
+  <article class="req" id="ACC-04" data-p="1">
+    <div class="req-top"><span class="rid">ACC-04</span><h4>สถานะพนักงาน แทนการลบ</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ปุ่มลบขัดกับกฎของโปรเจกต์โดยตรง และอันตรายกว่าที่เห็น เพราะคนหนึ่งคนผูกอยู่กับเช็คอิน ใบลา เบี้ยเลี้ยง ใบเซอร์ และประวัติการยืมเครื่องมือ</p>
+    <ul>
+      <li>สี่สถานะ — ทดลองงาน · ประจำ · พ้นสภาพ · ระงับการใช้ · ตั้งค่าเพิ่มได้</li>
+      <li>พ้นสภาพหรือระงับการใช้แล้ว ล็อกอินไม่ได้ และหายจากทุกดรอปดาวน์ที่ให้เลือกคน</li>
+      <li>ชื่อยังต้องแสดงในประวัติและรายงานย้อนหลังตามปกติ ห้ามกลายเป็นช่องว่างหรือขึ้นว่าไม่พบผู้ใช้</li>
+      <li>เอาปุ่มลบออกจากหน้าจอทั้งหมด ไม่ใช่แค่ซ่อน</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ตั้งคนหนึ่งเป็นพ้นสภาพ แล้วเปิดรายงานวันทำงานย้อนหลังของเดือนก่อน ชื่อยังต้องอยู่ครบ และในดรอปดาวน์เลือกพนักงานต้องไม่มีชื่อนี้แล้ว</p></div>
+  </article>
+
+  <article class="req" id="ACC-05" data-p="1">
+    <div class="req-top"><span class="rid">ACC-05</span><h4>Staff ID ระบบออกให้ ห้ามใช้ซ้ำ</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ตอนนี้ระบบเสนอ <span class="mono">STF-002</span> ให้คนใหม่ ทั้งที่เป็นเลขที่หายไปจากลำดับ แปลว่าเคยมีคนใช้แล้วถูกลบ ถ้ากดบันทึก ประวัติของคนเก่ากับคนใหม่จะเป็นคนเดียวกันในสายตาระบบ</p>
+    <ul>
+      <li>ระบบออกเลขให้เอง ต่อจากเลขสูงสุดที่เคยมี ไม่เติมช่องว่าง</li>
+      <li>เลขที่เคยออกไปแล้วห้ามนำกลับมาใช้ แม้คนนั้นจะพ้นสภาพไปแล้ว</li>
+      <li>ช่องนี้แก้ไม่ได้หลังบันทึกครั้งแรก</li>
+      <li>ตรวจก่อนว่าเลขที่หายไป (002 ถึง 010, 036, 038, 039) เคยมีคนใช้จริงหรือแค่ข้ามไปตอนตั้งระบบ ผลการตรวจเปลี่ยนวิธีจัดการข้อมูลเก่า</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>กดเพิ่ม Staff ใหม่ เลขที่ได้ต้องเป็น STF-043 ไม่ใช่ STF-002 และช่องนี้กรอกทับไม่ได้</p></div>
+  </article>
+
+  <article class="req" id="ACC-06" data-p="1">
+    <div class="req-top"><span class="rid">ACC-06</span><h4>ตำแหน่งและแผนกเป็นดรอปดาวน์ที่ตั้งค่าได้</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ทั้งสองช่องเป็นดรอปดาวน์ที่แก้รายการได้ในหน้าตั้งค่า และบังคับกรอกทั้งคู่</p>
+    <ul>
+      <li>ตำแหน่งคือหน้าที่ของคนคนนั้น เช่น Project Manager, Technician, HR</li>
+      <li>แผนกคือกลุ่มงานที่สังกัด เช่น Project Management, O&amp;M, Purchasing, Civil</li>
+      <li>ต้องเพิ่ม Civil เข้าไปในรายการ เพราะมีคนใช้จริงแต่ไม่มีในดรอปดาวน์วันนี้</li>
+      <li>ตำแหน่งที่ไม่มีใครใช้แปดค่า ให้ฝ่ายบุคคลตัดสินว่าจะเก็บไว้หรือเอาออก ไม่ใช่ผู้พัฒนาตัดสิน</li>
+      <li>ค่าที่เคยถูกใช้แล้วห้ามลบทิ้ง ให้ทำเครื่องหมายเลิกใช้ เพื่อไม่ให้รายงานย้อนหลังพัง</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เพิ่มแผนกใหม่ในหน้าตั้งค่าแล้วเลือกใช้ได้ทันทีโดยไม่ต้องแก้โค้ด และบันทึกโปรไฟล์ที่เว้นตำแหน่งหรือแผนกว่างไม่ได้</p></div>
+  </article>
+
+  <article class="req" id="ACC-07" data-p="1">
+    <div class="req-top"><span class="rid">ACC-07</span><h4>ล้างข้อมูลเก่า 31 แถว</h4><span class="chip p1">รอบ 1</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>นี่เป็นงานครั้งเดียว แต่ถ้าทำผิดจะแก้ยากมาก เพราะรายงานทุกใบที่จัดกลุ่มตามตำแหน่งหรือแผนกจะเชื่อค่าที่ล้างไว้</p>
+    <ul>
+      <li>สามคำที่สะกดคนละแบบ Project-Coordination, Project-Co., Project Management รวมเป็นค่าเดียว แต่<b>ต้องให้ฝ่ายบุคคลยืนยันก่อน</b>ว่าเป็นเรื่องเดียวกันจริง ไม่ใช่ผู้พัฒนารวมเอง</li>
+      <li>แก้ <span class="mono">Opeartion&amp;Maintenance</span> เป็น O&amp;M ทั้งสามคน</li>
+      <li>สิบสามคนที่กรอกว่า Project Manager ต้องทวนว่าเป็นตำแหน่งจริงทั้งหมดหรือกรอกตามทีมที่สังกัด บริษัท 31 คนมีผู้จัดการโครงการ 13 คนเป็นเรื่องที่ต้องยืนยัน</li>
+      <li>ทำเป็นตารางเทียบให้ฝ่ายบุคคลกาถูกทีละแถวก่อนนำเข้า ห้ามแปลงอัตโนมัติแล้วค่อยแก้ทีหลัง</li>
+      <li>เก็บค่าเดิมไว้ในคอลัมน์สำรอง เผื่อต้องย้อนกลับ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>หลังล้างข้อมูล เปิดรายงานทะเบียนพนักงานจัดกลุ่มตามแผนก ต้องไม่มีกลุ่มที่ซ้ำความหมายกัน และไม่มีคนตกหล่นจาก 31 คน</p></div>
+  </article>
+
+  <article class="req" id="ACC-08" data-p="2">
+    <div class="req-top"><span class="rid">ACC-08</span><h4>วันเริ่มงาน และผลต่อโควตาลา</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>เพิ่มช่องวันเริ่มงาน บังคับกรอก ระบบวันนี้ไม่มีข้อมูลนี้เลยทั้งที่โควตาลาพักร้อนตามกฎหมายผูกกับอายุงาน</p>
+    <ul>
+      <li>แสดงอายุงานที่คำนวณได้ข้าง ๆ ช่องนี้ ให้ฝ่ายบุคคลเห็นทันทีว่าใครครบรอบ</li>
+      <li>ระบบเสนอโควตาลาพักร้อนตามอายุงานให้ แต่<b>ไม่เปลี่ยนค่าเอง</b> ต้องมีคนกดรับ เพราะบริษัทอาจให้มากกว่าที่กฎหมายกำหนด</li>
+      <li>คนที่ยังอยู่ในสถานะทดลองงาน ให้ระบบเตือนเมื่อใกล้ครบกำหนด ไม่ต้องเปลี่ยนสถานะเอง</li>
+      <li>สำหรับ 31 คนที่มีอยู่ ต้องกรอกย้อนหลัง เป็นงานของฝ่ายบุคคล ไม่ใช่ผู้พัฒนาเดา</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>กรอกวันเริ่มงานย้อนหลังไปสามปี ระบบต้องแสดงอายุงานถูกต้องและเสนอโควตาให้ แต่ค่าโควตาเดิมต้องไม่เปลี่ยนจนกว่าจะมีคนกดรับ</p></div>
+  </article>
+
+  <article class="req" id="ACC-09" data-p="2">
+    <div class="req-top"><span class="rid">ACC-09</span><h4>โควตาวันลาเข้าคิวรอผู้บริหารอนุมัติ</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>APV-11 ระบุว่าการแก้สิทธิ์วันลารายคนต้องผ่านผู้บริหาร แต่วันนี้แอดมินพิมพ์ทับได้เลยในหน้านี้</p>
+    <ul>
+      <li>แอดมินแก้ค่าได้ที่หน้าเดิม แต่ค่าใหม่ยังไม่มีผลจนกว่าผู้บริหารจะอนุมัติ</li>
+      <li>ระหว่างรอ ต้องแสดงทั้งค่าปัจจุบันและค่าที่รออนุมัติ พร้อมป้ายว่ารออยู่</li>
+      <li>ส่งเข้าคิวเดียวกับหน้าอนุมัติรวมตาม APV-05 ไม่ใช่คิวใหม่แยกต่างหาก</li>
+      <li>ใช้กับวันหยุดชดเชยสะสมด้วย เพราะเป็นสิทธิ์ที่แปลงเป็นวันลาได้เหมือนกัน</li>
+      <li>ต้องกรอกเหตุผลตอนเสนอ เพราะผู้บริหารไม่ได้อยู่ในเหตุการณ์ที่ทำให้ต้องแก้</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ล็อกอินเป็นแอดมิน แก้โควตาลาของคนหนึ่งจาก 6 เป็น 10 แล้วโควตาที่ใช้คำนวณจริงต้องยังเป็น 6 จนกว่าผู้บริหารจะกดอนุมัติ</p></div>
+  </article>
+
+  <article class="req" id="ACC-10" data-p="2">
+    <div class="req-top"><span class="rid">ACC-10</span><h4>หน้าโปรไฟล์ของพนักงานเอง</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>วันนี้ทุกการแก้ต้องผ่านแอดมิน แม้แต่เบอร์โทรที่เปลี่ยน ซึ่งทำให้ข้อมูลติดต่อเก่าค้างอยู่นานโดยไม่มีใครรู้</p>
+    <ul>
+      <li>พนักงานแก้ได้เอง — เบอร์โทร · อีเมล · รูปโปรไฟล์ · รหัสผ่านของตัวเอง</li>
+      <li>ดูได้แต่แก้ไม่ได้ — ชื่อ · Staff ID · ตำแหน่ง · แผนก · หัวหน้างาน · สิทธิ์ · โควตาวันลา · วันเริ่มงาน · สถานะ</li>
+      <li>เปลี่ยนรหัสผ่านตัวเองต้องกรอกรหัสเดิมก่อน</li>
+      <li>การเห็นโปรไฟล์คนอื่นให้จำกัดเท่าที่จำเป็น ชื่อ ตำแหน่ง แผนก เบอร์ที่ติดต่องานได้ ส่วนโควตาวันลาและวันเริ่มงานของคนอื่นไม่ต้องเห็น</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ล็อกอินเป็นพนักงานทั่วไป เปลี่ยนเบอร์โทรตัวเองสำเร็จ และไม่มีทางใดในหน้าจอที่แก้โควตาวันลาหรือหัวหน้างานของตัวเองได้</p></div>
+  </article>
+
+  <article class="req" id="ACC-11" data-p="2">
+    <div class="req-top"><span class="rid">ACC-11</span><h4>การตั้งรหัสผ่านทับ ต้องแจ้งและบันทึก</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>วันนี้แอดมินพิมพ์รหัสผ่านใหม่ทับใครก็ได้โดยไม่ต้องรู้รหัสเดิม และไม่มีใครรู้ว่าเกิดขึ้น ซึ่งแปลว่าแอดมินสวมเป็นใครก็ได้แล้วกดอนุมัติในนามคนนั้น</p>
+    <ul>
+      <li>ยังให้แอดมินตั้งทับได้ เพราะจำเป็นเวลาคนลืมรหัส</li>
+      <li>แต่ต้องแจ้งเจ้าของบัญชีทันทีทุกครั้ง ผ่านช่องทางเดียวกับ LV-10</li>
+      <li>ต้องลง audit log ว่าใครตั้งทับของใคร เมื่อไหร่ ด้วยเหตุผลอะไร และลบไม่ได้</li>
+      <li>บังคับให้เจ้าตัวเปลี่ยนรหัสอีกครั้งตอนล็อกอินครั้งถัดไป</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>แอดมินตั้งรหัสผ่านทับของคนหนึ่ง เจ้าตัวต้องได้รับแจ้งภายในทันที และตอนล็อกอินครั้งถัดไปต้องถูกบังคับให้ตั้งรหัสใหม่</p></div>
+  </article>
+
+  <article class="req" id="ACC-12" data-p="2">
+    <div class="req-top"><span class="rid">ACC-12</span><h4>บัญชีทดสอบและบัญชีที่ไม่ใช่คน</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ในระบบจริงมีสามบัญชีที่ต้องตัดสินใจ และทั้งสามปนอยู่ในตัวเลข 31 คนที่ทุกรายงานใช้เป็นตัวหาร</p>
+    <ul>
+      <li><b>STF-011 ผู้ใช้งาน ทดสอบ</b> (<span class="mono">demo</span>) แผนก Demo — เป็นบัญชีทดสอบชัดเจน ให้ตั้งเป็นระงับการใช้</li>
+      <li><b>STF-000 Athit</b> ถือสิทธิ์แอดมิน และอยู่ในดรอปดาวน์หัวหน้างานให้เลือกได้ — ต้องตรวจว่าเป็นคนจริงที่ยังทำงานอยู่หรือเป็นบัญชีตอนตั้งระบบ</li>
+      <li><b>STF-001 ดร.จักรกฤษณ์</b> ใช้ username ว่า <span class="mono">admin</span> — เป็นคนจริงแต่ชื่อบัญชีทำให้เข้าใจผิดว่าเป็นบัญชีระบบ ควรเปลี่ยนเป็นชื่อจริง</li>
+      <li>เพิ่มเครื่องหมายแยกว่าบัญชีไหนไม่ใช่พนักงาน เพื่อให้ตัวเลขจำนวนพนักงานในรายงานถูกต้อง</li>
+      <li>ทั้งสามข้อนี้<b>ต้องให้ผู้ใช้ยืนยันก่อน</b> ผู้พัฒนาห้ามตัดสินใจเอง เพราะเป็นบัญชีที่อาจมีคนใช้อยู่</li>
+      <li><b>ยืนยันแล้ว 8 ก.ย. 2569</b> — STF-011 <b>เป็นบัญชีทดสอบจริง ระงับได้ทันที</b> · ผู้ที่ใช้บัญชีนี้ส่ง feedback 4 รายการระหว่าง UAT คือ<b>ผู้บริหารเอง ซึ่งมีบัญชีจริงอยู่แล้ว</b> จึงไม่มีใครเข้าระบบไม่ได้</li>
+      <li><b>แต่ต้องเข้าใจว่าทำไมถึงต้องใช้บัญชีนั้น</b> — บัญชีจริงของผู้บริหารถือสิทธิ์แอดมิน ซึ่งเห็นทุกอย่าง จึง<b>ทดสอบไม่ได้ว่าพนักงานทั่วไปเห็นหน้าจอแบบไหน</b> · ถ้าห้ามสร้างบัญชีทดสอบโดยไม่ให้ทางเลือกอื่น กติกาข้อนี้จะถูกฝ่าฝืนอีกในครั้งถัดไป ดู ACC-19</li>
+      <li><b>กติกาใหม่ ห้ามสร้างบัญชีลักษณะนี้อีก</b> — ห้ามสร้างบัญชีทดสอบ บัญชีกลาง หรือบัญชีที่ไม่ใช่คนจริง ไว้ในทะเบียนพนักงาน · ทุกบัญชีต้องผูกกับคนจริงหนึ่งคน · ถ้าต้องการบัญชีสำหรับทดสอบ ให้ทำในระบบทดสอบแยก ไม่ใช่ในระบบจริง</li>
+      <li><b>เหตุผล</b> บัญชีที่ไม่ใช่คนจะปนอยู่ในตัวหารของทุกรายงานทันทีที่สร้าง และไม่มีใครสังเกตจนกว่าจะมีคนไล่นับ · ครั้งนี้ปนอยู่ในเลข 31 คนมาตลอด</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>หลังจัดการแล้ว การ์ดจำนวนพนักงานต้องแสดงเฉพาะคนจริง และบัญชีที่ระงับต้องล็อกอินไม่ได้และไม่ปรากฏในดรอปดาวน์ใด ๆ</p></div>
+  </article>
+
+  <article class="req" id="ACC-19" data-p="2">
+    <div class="req-top"><span class="rid">ACC-19</span><h4>โหมดดูในมุมมองของบทบาทอื่น</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>เพิ่มเมื่อ 8 กันยายน 2569 · เป็นสิ่งที่ต้องมีคู่กับกติกาห้ามสร้างบัญชีทดสอบใน ACC-12 มิฉะนั้นกติกานั้นจะถูกฝ่าฝืน</p>
+    <ul>
+      <li>ผู้บริหารและแอดมินกด <b>ดูในมุมมองของ</b> แล้วเลือกบทบาท เช่น พนักงานทั่วไป หัวหน้างาน หรือฝ่ายบุคคล เพื่อดูว่าหน้าจอของบทบาทนั้นหน้าตาอย่างไร</li>
+      <li><b>อ่านอย่างเดียวเท่านั้น</b> กดปุ่มที่เปลี่ยนข้อมูลไม่ได้ ยื่นใบลาไม่ได้ อนุมัติไม่ได้ เช็คอินไม่ได้</li>
+      <li>ต้องมี<b>แถบสีค้างบนจอตลอดเวลา</b>ว่ากำลังดูในมุมมองของใคร พร้อมปุ่มออกจากโหมด ไม่ใช่ให้ลืมว่าอยู่ในโหมดนี้</li>
+      <li>ลง audit log ว่าใครเข้าโหมดนี้ เมื่อไหร่ ดูมุมมองของบทบาทไหน · <b>นี่คือการดูข้อมูลของคนอื่น จึงต้องบันทึกเหมือนการเปลี่ยนสิทธิ์</b></li>
+      <li><b>ไม่ใช่การสวมเป็นคนใดคนหนึ่ง</b> และไม่ใช่ทางเลือกแทนการตั้งรหัสผ่านทับใน ACC-11 · ถ้าต้องดูข้อมูลของคนใดคนหนึ่งจริง ๆ ให้เลือกคนแล้วบันทึกไว้ชัดว่าดูของใคร</li>
+    </ul>
+    <p><b>สิ่งที่โหมดนี้ทำไม่ได้</b> — การทดสอบที่ต้องกดจริง เช่น ยื่นใบลาแล้วดูว่าคิวอนุมัติขึ้นถูกไหม · งานแบบนั้นทำใน<b>ระบบ UAT ซึ่งบริษัทมีอยู่แล้ว</b> ไม่ใช่บัญชีปลอมในระบบจริง · โหมดนี้มีไว้สำหรับการดูมุมมองบทบาทอื่นใน<b>ระบบจริง</b> เช่น ฝ่ายบุคคลอยากรู้ว่าพนักงานเห็นยอดวันลาของตัวเองอย่างไร ซึ่งเป็นคนละความต้องการกับการทดสอบ</p>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ผู้บริหารเข้าโหมดดูในมุมมองพนักงานทั่วไป แล้วเห็นหน้าจอเหมือนพนักงานจริง · ทุกปุ่มที่เปลี่ยนข้อมูลกดไม่ได้ทั้งบนหน้าจอและเมื่อยิงหลังบ้านตรง · และมีบรรทัดใน audit log ทุกครั้งที่เข้าโหมด</p></div>
+  </article>
+
+  <article class="req" id="ACC-13" data-p="2">
+    <div class="req-top"><span class="rid">ACC-13</span><h4>หน้าเตือนข้อมูลไม่ครบ</h4><span class="chip p2">รอบ 2</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ปัญหาที่แท้จริงของหน้านี้ไม่ใช่ฟิลด์ที่ขาด แต่คือ<b>ไม่มีใครรู้ว่าข้อมูลไม่ครบ</b> จนกระทั่งเมนูอื่นทำงานผิดแล้ว รัชนีไม่มีหัวหน้างานมาตั้งแต่แรกและไม่มีอะไรบอกใครเลย</p>
+    <ul>
+      <li>หน้าเดียวที่รวมว่าใครยังขาดอะไร — หัวหน้างาน · ตำแหน่ง · แผนก · วันเริ่มงาน · โควตาวันลา · อีเมล</li>
+      <li>แยกให้ชัดระหว่างที่ขาดแล้วทำให้ระบบพัง กับที่ขาดแล้วแค่รายงานไม่สวย</li>
+      <li>เตือนเป็นพิเศษเมื่อสิทธิ์ที่ต้องมีอย่างน้อยหนึ่งคนกลายเป็นศูนย์ เช่น ไม่มีใครถือสิทธิ์ฝ่ายบุคคล หรือฝ่ายบุคคลมีคนเดียวโดยไม่มีผู้สำรอง</li>
+      <li>เตือนเมื่อหัวหน้างานคนหนึ่งมีลูกทีมมากผิดปกติ หรือเมื่อมีคนที่ไม่มีใครเป็นลูกทีมเลยทั้งที่ถือสิทธิ์หัวหน้างาน</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ลบสิทธิ์ฝ่ายบุคคลออกจากทุกคน หน้านี้ต้องขึ้นเตือนแรงทันทีว่าไม่มีใครอนุมัติเบี้ยเลี้ยงได้ พร้อมบอกว่ากระทบรอบจ่ายอย่างไร</p></div>
+  </article>
+
+  <article class="req" id="ACC-14" data-p="3">
+    <div class="req-top"><span class="rid">ACC-14</span><h4>audit log ของการเปลี่ยนสิทธิ์</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>การเปลี่ยนสิทธิ์คือการเปลี่ยนอำนาจ ต้องบันทึกเหมือนที่ APV-13 บังคับกับการอนุมัติ</p>
+    <ul>
+      <li>บันทึกทุกการเปลี่ยน — สิทธิ์ · หัวหน้างาน · สถานะพนักงาน · โควตาวันลา · การตั้งรหัสผ่านทับ</li>
+      <li>เก็บทั้งค่าเดิมและค่าใหม่ ใครเปลี่ยน เมื่อไหร่ ด้วยเหตุผลอะไร</li>
+      <li>ลบไม่ได้และแก้ไม่ได้ แม้แต่แอดมิน</li>
+      <li>เปิดดูประวัติของพนักงานหนึ่งคนได้เป็นเส้นเวลา ตั้งแต่สร้างบัญชีจนพ้นสภาพ</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>เปิดโปรไฟล์คนหนึ่งแล้วเห็นเส้นเวลาการเปลี่ยนสิทธิ์ครบทุกครั้งพร้อมชื่อคนที่เปลี่ยน และไม่มีทางใดในระบบที่ลบบรรทัดในนี้ได้</p></div>
+  </article>
+
+  <article class="req" id="ACC-15" data-p="3">
+    <div class="req-top"><span class="rid">ACC-15</span><h4>หน้ารายชื่อที่ใช้งานได้จริง และการ์ดนับที่ถูกต้อง</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>ตารางวันนี้แสดงคอลัมน์ตำแหน่งที่ว่างทั้งคอลัมน์ แต่ไม่แสดงหัวหน้างานซึ่งเป็นข้อมูลที่คนเปิดหน้านี้ต้องการจริง ๆ และการ์ดนับด้านบนก็นับผิด</p>
+    <ul>
+      <li>คอลัมน์ที่ควรมี — Staff ID · ชื่อ · ตำแหน่ง · แผนก · หัวหน้างาน · สิทธิ์ · สถานะ</li>
+      <li>แก้การ์ดนับให้ตรงกับสิทธิ์จริง วันนี้แสดงผู้ใช้ทั่วไป 25 คนทั้งที่นับได้ 23 เพราะเอาหัวหน้างาน 2 คนไปรวม</li>
+      <li>เมื่อคนหนึ่งถือหลายสิทธิ์ การ์ดต้องไม่นับซ้ำจนยอดรวมเกินจำนวนคนจริง ให้ระบุวิธีนับไว้ข้างการ์ด</li>
+      <li>กรองตามสิทธิ์ สถานะ แผนก และหัวหน้างานได้</li>
+      <li>ค่าตั้งต้นแสดงเฉพาะคนที่ยังทำงานอยู่ ต้องกดเลือกจึงจะเห็นคนที่พ้นสภาพ</li>
+      <li>ส่งออกเป็น Excel ได้ เพราะฝ่ายบุคคลต้องใช้ทำทะเบียนนอกระบบอยู่แล้ว</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ยอดรวมของทุกการ์ดต้องอธิบายได้ตรงกับจำนวนแถวที่กรองได้จริง และกรองหาคนที่ยังไม่มีหัวหน้างานได้ในคลิกเดียว</p></div>
+  </article>
+
+  <article class="req" id="ACC-16" data-p="3">
+    <div class="req-top"><span class="rid">ACC-16</span><h4>ขั้นตอนเมื่อคนพ้นสภาพ</h4><span class="chip p2">รอบ 3</span><a class="back" href="#index">↑ สารบัญ</a></div>
+    <p>การตั้งสถานะพ้นสภาพไม่ใช่แค่ปิดบัญชี เพราะคนคนนั้นอาจเป็นหัวหน้างานของคนอื่นอยู่ หรือมีเรื่องค้างในคิวอนุมัติของตัวเอง</p>
+    <ul>
+      <li>ก่อนบันทึก ต้องแสดงรายการผลกระทบ — เป็นหัวหน้างานของกี่คน · มีเรื่องค้างในคิวกี่เรื่อง · ยืมเครื่องมืออยู่กี่ชิ้น · ใบลาที่อนุมัติแล้วแต่ยังไม่ถึงวัน</li>
+      <li>ถ้าเป็นหัวหน้างานของคนอื่น ต้องระบุหัวหน้างานคนใหม่ให้ลูกทีมทุกคนก่อน จึงจะบันทึกได้</li>
+      <li>เรื่องที่ค้างในคิวของคนที่พ้นสภาพ เป็นข้อยกเว้นเดียวของกติกาไม่ส่งต่ออัตโนมัติใน APV-07 เพราะคนเดิมกดไม่ได้แล้ว ให้ย้ายไปหาผู้สำรองพร้อมบันทึกเหตุผลว่าย้ายเพราะพ้นสภาพ</li>
+      <li>เครื่องมือที่ยืมค้างต้องขึ้นเตือน ไม่ใช่ค้างเป็นของคนที่ไม่อยู่แล้ว</li>
+      <li>เบี้ยเลี้ยงของรอบที่ยังไม่ปิด ต้องเคลียร์ให้จบก่อน</li>
+    </ul>
+    <div class="accept"><b>เกณฑ์ตรวจรับ</b><p>ตั้งหัวหน้างานที่มีลูกทีมสามคนเป็นพ้นสภาพ ระบบต้องไม่ยอมบันทึกจนกว่าลูกทีมทั้งสามจะมีหัวหน้าคนใหม่ และเรื่องที่ค้างต้องย้ายไปหาผู้สำรองพร้อมหมายเหตุ</p></div>
+  </article>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>ผลกระทบข้ามเมนู</h2>
+  <p class="sec-note">รหัสตามไฟล์ <span class="mono">สัญญากลาง-โมดูลบุคคล_2569-08-31.md</span> ข้อ 2 และข้อ 4</p>
+
+  <h3>ของกลางที่ใบนี้เปลี่ยน</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>รหัส</th><th>ของกลาง</th><th>เจ้าของ</th><th>ใบนี้เปลี่ยนอะไร</th><th>เมนูที่กระทบ</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">S1</td><td>ทะเบียนพนักงาน</td><td><b>Staff/Account</b></td><td>เพิ่มวันเริ่มงานและสถานะพนักงาน · ตำแหน่งและแผนกเป็นดรอปดาวน์บังคับกรอก · หัวหน้างานบังคับกรอก · Staff ID ห้ามใช้ซ้ำ<br><span class="mono">ACC-02 04 05 06 07 08</span></td><td><b>ทุกเมนู</b> (● ครบสิบคอลัมน์)</td></tr>
+        <tr><td class="mono">S8</td><td>สิทธิ์ตามบทบาท</td><td><b>Staff/Account</b></td><td>เปลี่ยนจากบทบาทเดี่ยว 4 ค่า เป็นสิทธิ์ติ๊กได้หลายอัน 5 ชุด และเพิ่มสิทธิ์ฝ่ายบุคคลกับผู้บริหารที่ยังไม่เคยมี<br><span class="mono">ACC-01</span></td><td><b>ทุกเมนู</b> (● ครบสิบคอลัมน์)</td></tr>
+        <tr><td class="mono">S2</td><td>สายอนุมัติ + ผู้อนุมัติสำรอง</td><td>อนุมัติ</td><td>ตัดสำเนาสามช่องผู้อนุมัติออกจากโปรไฟล์ · ผู้สำรองเก็บที่ตารางอำนาจแบบรายบทบาท<br><span class="mono">ACC-02 03</span></td><td>เช็คอิน · ลา · เบี้ยเลี้ยง · อนุมัติ · Staff · เครื่องมือ</td></tr>
+        <tr><td class="mono">S6</td><td>ระบบแจ้งเตือน</td><td>หน้าตั้งค่า</td><td>เพิ่มเหตุการณ์ใหม่ — แอดมินตั้งรหัสผ่านทับ · ข้อมูลพนักงานไม่ครบ<br><span class="mono">ACC-11 13</span></td><td>Staff/Account · หน้าตั้งค่า</td></tr>
+        <tr><td class="mono">S7</td><td>audit log</td><td>บริการกลาง</td><td>เพิ่มชนิดเหตุการณ์ — เปลี่ยนสิทธิ์ · เปลี่ยนหัวหน้างาน · เปลี่ยนสถานะ · ตั้งรหัสผ่านทับ<br><span class="mono">ACC-14</span></td><td>ทุกเมนู</td></tr>
+        <tr><td class="mono">S13</td><td>ธงข้อมูลอ่อนไหว PDPA</td><td>บริการกลาง</td><td>จำกัดการเห็นโปรไฟล์คนอื่น — โควตาวันลาและวันเริ่มงานของคนอื่นไม่ต้องเห็น<br><span class="mono">ACC-10</span></td><td>Staff/Account · รายงาน · Dashboard</td></tr>
+        <tr><td class="mono">S14</td><td>รูปแบบวันที่</td><td>หน้าตั้งค่า</td><td>วันเริ่มงานและอายุงานต้องใช้รูปแบบเดียวกับทั้งระบบ<br><span class="mono">ACC-08</span></td><td>ทุกเมนู</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>ของกลางสองรายการที่ยังไม่มีในสัญญากลาง</h3>
+  <p class="body">ใบนี้ทำให้เห็นว่าสองอย่างนี้ถูกใช้ข้ามเมนูจริง แต่ยังไม่มีรหัสในทะเบียน ควรเพิ่มเข้าไป</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>เสนอรหัส</th><th>ของกลาง</th><th>เจ้าของที่ควรเป็น</th><th>ผู้ใช้</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">S15</td><td>โควตาวันลา และวันหยุดชดเชยสะสม</td><td>Staff/Account</td><td>ลา · เช็คอิน · ปฏิทิน · อนุมัติ · ศูนย์รายงาน<br><small>S1 ไม่ครอบคลุมสองค่านี้ แต่ ACC-09 ทำให้มันมีสถานะรออนุมัติได้ ซึ่งเมนูลาต้องรู้</small></td></tr>
+        <tr><td class="mono">S16</td><td>บัญชีผู้ใช้และรหัสผ่าน</td><td>Staff/Account</td><td>ทุกเมนู<br><small>ACC-11 เปลี่ยนกติกาการตั้งรหัสผ่านทับ ซึ่งกระทบทุกคนที่ล็อกอิน</small></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>จุดเชื่อมที่ใบนี้แตะ</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>จุดเชื่อม</th><th>ใบนี้ทำอะไรกับมัน</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">J5</td><td><b>พนักงานลาออกหรือย้ายแผนก</b> — เดิมสัญญากลางเขียนแค่หลักการว่าห้ามลบ ใบนี้ขยายเป็นขั้นตอนจริง ต้องระบุหัวหน้าคนใหม่ให้ลูกทีมก่อน · เรื่องที่ค้างย้ายไปผู้สำรอง · เครื่องมือที่ยืมค้างต้องเตือน · เบี้ยเลี้ยงรอบที่ยังไม่ปิดต้องเคลียร์ <span class="mono">ACC-04 16</span></td></tr>
+        <tr><td class="mono">J7</td><td><b>เพิ่มช่องทางแจ้งเตือนหรือแก้เทมเพลต</b> — เพิ่มเหตุการณ์ แอดมินตั้งรหัสผ่านทับ ผู้รับคือเจ้าของบัญชี <span class="mono">ACC-11</span></td></tr>
+        <tr><td class="mono">J4</td><td><b>ต้องเคาะก่อน มีข้อขัดกันอยู่</b> — สัญญากลาง J4 เขียนว่าผู้อนุมัติสำรองเว้นว่างแล้วส่งไปแอดมิน แต่ APV-02 เคาะว่าให้ไปที่ผู้บริหาร และ APV-11 เคาะว่าแอดมินไม่ใช่ผู้อนุมัติ สามข้อนี้ขัดกันเอง ต้องเลือกอันเดียว</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>ข้อความสำหรับเติมตารางข้อ 5 ของสัญญากลาง</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>วันที่</th><th>ของกลาง</th><th>เปลี่ยนอะไร</th><th>กระทบเมนู</th><th>สถานะตามแก้</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">2569-08-31</td><td class="mono">S1</td><td>เพิ่มวันเริ่มงาน + สถานะพนักงาน · ตำแหน่งและแผนกเป็นดรอปดาวน์บังคับกรอก · หัวหน้างานบังคับกรอก · Staff ID ห้ามใช้ซ้ำ (ACC-02, 04–08)</td><td>ทุกเมนู</td><td>รอตามแก้</td></tr>
+        <tr><td class="mono">2569-08-31</td><td class="mono">S8</td><td>บทบาทเดี่ยว 4 ค่า → สิทธิ์ติ๊กได้หลายอัน 5 ชุด เพิ่มฝ่ายบุคคลและผู้บริหาร (ACC-01)</td><td>ทุกเมนู</td><td>รอตามแก้</td></tr>
+        <tr><td class="mono">2569-08-31</td><td class="mono">S2</td><td>ตัดสำเนาผู้อนุมัติออกจากโปรไฟล์ · ผู้สำรองเป็นรายบทบาทที่ตารางอำนาจ (ACC-03)</td><td>ลา · เบี้ยเลี้ยง · เช็คอิน · อนุมัติ · เครื่องมือ</td><td>รอตามแก้</td></tr>
+        <tr><td class="mono">2569-08-31</td><td class="mono">S6 · J7</td><td>เพิ่มเหตุการณ์แจ้งเตือน แอดมินตั้งรหัสผ่านทับ (ACC-11)</td><td>Staff/Account</td><td>รอตามแก้</td></tr>
+        <tr><td class="mono">2569-08-31</td><td class="mono">J5</td><td>ขยายเป็นขั้นตอนพ้นสภาพที่บังคับได้จริง (ACC-16)</td><td>ทุกเมนู</td><td>รอตามแก้</td></tr>
+        <tr><td class="mono">2569-08-31</td><td class="mono">S15 S16</td><td>เสนอเพิ่มของกลางสองรายการ — โควตาวันลา/วันหยุดชดเชย และบัญชีผู้ใช้/รหัสผ่าน</td><td>ลา · อนุมัติ · รายงาน · ทุกเมนู</td><td>รอเคาะ</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>เมนูที่ต้องเปิดแชทตามแก้หลังใบนี้</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>เมนู</th><th>เพราะอะไร</th><th>ของกลาง</th></tr></thead>
+      <tbody>
+        <tr><td><b>อนุมัติ</b></td><td>ตารางอำนาจต้องรับผู้สำรองรายบทบาท และรับแถวผู้อนุมัติการยืมที่ย้ายมาจากโปรไฟล์ · ต้องเคาะข้อขัดกัน J4</td><td class="mono">S2 S8</td></tr>
+        <tr><td><b>ลา</b></td><td>เลิกอ่านช่องผู้อนุมัติการลาในโปรไฟล์ ให้ถามตารางอำนาจแทน · โควตาวันลาอาจอยู่ในสถานะรออนุมัติ</td><td class="mono">S1 S2 S15</td></tr>
+        <tr><td><b>เบี้ยเลี้ยง</b></td><td>ALW-11 ต้องอ้างสิทธิ์ฝ่ายบุคคล ไม่ใช่ข้อความ HR ในช่องแผนก · ต้องมีผู้สำรองฝ่ายบุคคลก่อนเปิดใช้</td><td class="mono">S2 S8</td></tr>
+        <tr><td><b>เครื่องมือ (ยืม-คืน)</b></td><td>ผู้อนุมัติการยืมย้ายออกจากโปรไฟล์ ต้องแก้จุดที่อ่านค่านี้</td><td class="mono">S2</td></tr>
+        <tr><td><b>ใบเซอร์</b></td><td>การกันคนที่ใบหมดอายุไม่ให้ลงไซต์ ต้องรู้ตำแหน่งจริง ซึ่งวันนี้ว่างทั้ง 31 คน</td><td class="mono">S1 S11</td></tr>
+        <tr><td><b>Dashboard</b></td><td>DSH ที่ปิดไปแล้วนับคนจาก 31 รายการซึ่งมีบัญชีทดสอบปนอยู่ · ต้องกันคนพ้นสภาพออกจากตัวหาร</td><td class="mono">S1 S8</td></tr>
+        <tr><td><b>ศูนย์รายงาน</b></td><td>รายงานที่จัดกลุ่มตามตำแหน่งหรือแผนก วันนี้เชื่อถือไม่ได้ทั้งหมด</td><td class="mono">S1 S13</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>สิ่งที่ต้องแก้ในเอกสารเดิม</h2>
+  <div class="log">
+    <div class="log-item"><b>APV-01 ตารางอำนาจอนุมัติ<i>ต้องเพิ่มช่องผู้สำรองรายบทบาท ตามที่เคาะในใบนี้ว่าผู้สำรองเก็บที่ตารางอำนาจ ไม่ใช่ที่โปรไฟล์รายคน</i></b><span>ขยายขอบเขต</span></div>
+    <div class="log-item"><b>APV-02 ผู้อนุมัติผูกกับบทบาท<i>เดิมเขียนกว้าง ๆ ว่ามีผู้สำรอง ตอนนี้ระบุชัดว่าเป็นผู้สำรองระดับบทบาท และรับข้อแลกเปลี่ยนว่าผู้สำรองของหัวหน้างานจะเป็นคนเดียวกันทั้งบริษัท</i></b><span>ระบุให้ชัด</span></div>
+    <div class="log-item"><b>APV-07 ไม่ส่งต่ออัตโนมัติ<i>เพิ่มข้อยกเว้นเดียว คือเมื่อผู้อนุมัติพ้นสภาพ เรื่องที่ค้างต้องย้ายไปผู้สำรองพร้อมบันทึกเหตุผล ตาม ACC-16</i></b><span>เพิ่มข้อยกเว้น</span></div>
+    <div class="log-item"><b>ALW-11 ผู้อนุมัติเบี้ยเลี้ยง<i>ให้อ้างสิทธิ์ฝ่ายบุคคลตาม ACC-01 และต้องเคาะชื่อผู้สำรองฝ่ายบุคคลก่อนเปิดใช้ เพราะวันนี้มีคนเดียว</i></b><span>ต้องแก้</span></div>
+    <div class="log-item"><b>ทุกใบที่อ้างคำว่าแอดมิน<i>ตั้งแต่ใบนี้ไป แอดมินคือผู้ดูแลข้อมูล ไม่ใช่ผู้อนุมัติและไม่ใช่ผู้บริหาร สามคำนี้ต้องแยกกันในทุกเอกสาร</i></b><span>ปรับถ้อยคำ</span></div>
+    <div class="log-item"><b>สัญญากลาง ข้อ 2 ทะเบียนของกลาง<i>เพิ่ม S15 โควตาวันลาและวันหยุดชดเชยสะสม · S16 บัญชีผู้ใช้และรหัสผ่าน ทั้งสองมีเจ้าของเป็น Staff/Account</i></b><span>ต้องเพิ่ม</span></div>
+    <div class="log-item"><b>สัญญากลาง J4 ผู้อนุมัติสำรองเว้นว่าง<i>เขียนว่าส่งไปแอดมิน ซึ่งขัดกับ APV-02 ที่ว่าให้ไปผู้บริหาร และขัดกับ APV-11 ที่ว่าแอดมินไม่ใช่ผู้อนุมัติ ต้องเลือกอันเดียวแล้วแก้ให้ตรงกันทั้งสามที่</i></b><span>ขัดกันเอง</span></div>
+    <div class="log-item"><b>สัญญากลาง ข้อ 5 บันทึกการเปลี่ยนของกลาง<i>ยังมีแถวเดียวคือแถวตั้งไฟล์ ให้เติมหกแถวที่เตรียมไว้ในหัวข้อผลกระทบข้ามเมนูของใบนี้</i></b><span>ต้องเติม</span></div>
+    <div class="log-item"><b>สัญญากลางไม่ได้อยู่ในโปรเจกต์<i>ไฟล์อยู่ในโฟลเดอร์ HR บนเครื่องเท่านั้น แชทใหม่ในโปรเจกต์จึงหาไม่เจอทั้งที่คำสั่งโปรเจกต์สั่งให้อ่านก่อนทุกครั้ง ควรอัปโหลดเข้าโปรเจกต์</i></b><span>ต้องอัปโหลด</span></div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>เรื่องที่ยังไม่เคาะ</h2>
+  <ol style="color:var(--ink-2);max-width:68ch;padding-left:22px">
+    <li><b>ใครเป็นผู้บริหารในระบบ</b> ทั้งใบสั่งงานอนุมัติและใบนี้ต้องใช้ แต่ยังไม่มีชื่อ และวันนี้ไม่มีใครถือสิทธิ์นี้เลย</li>
+    <li><b>ใครเป็นผู้สำรองของฝ่ายบุคคล</b> APV-02 บังคับว่าต้องมี แต่ฝ่ายบุคคลมีคนเดียว</li>
+    <li><b>หัวหน้างานควรมีกี่คน</b> วันนี้มี 2 คนสำหรับพนักงาน 31 คน ต้องยืนยันว่าตรงกับความจริงหน้างานหรือมีคนที่ทำหน้าที่นี้อยู่แต่ยังไม่ได้ตั้งในระบบ</li>
+    <li><b>สิบสามคนที่กรอกว่า Project Manager เป็นตำแหน่งจริงหรือไม่</b> กระทบทั้งการล้างข้อมูลและรายงานทุกใบที่จัดกลุ่มตามตำแหน่ง</li>
+    <li><b>เลข Staff ID ที่หายไป</b> (002–010, 036, 038, 039) เคยมีคนใช้จริงหรือแค่ข้ามไปตอนตั้งระบบ</li>
+    <li><b>บัญชี Athit</b> เป็นคนจริงที่ยังทำงานอยู่หรือเป็นบัญชีตอนตั้งระบบ</li>
+    <li><b>ผู้ติดต่อกรณีฉุกเฉิน</b> ยังไม่เอาในรอบนี้ แต่งานไซต์มีความเสี่ยง และกฎหมายความปลอดภัยกำหนดให้มี ควรทบทวนอีกครั้งตอนทำเมนูโครงการ/ไซต์งาน</li>
+  </ol>
+</section>
+
+<a class="backtop" href="#index">↑ สารบัญ</a>
+
+</div>
+</body>
+</html>
