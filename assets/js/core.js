@@ -71,10 +71,10 @@ SS.core = (function () {
     var approved = leaves.filter(function (l) { return l.status === 'approved' || l.status === 'used'; })[0];
     var pending  = leaves.filter(function (l) { return l.status === 'pending'; })[0];
 
-    /* 1 · เช็คอินชนะเสมอ */
+    /* 1 · เช็คอินชนะเสมอ — แต่ถ้าไปถึงแล้วทำงานไม่ได้ ให้เป็นสถานะที่ 8 (CI-26) */
     if (ci) {
       return {
-        status: 'work', checkin: ci, leave: approved || null, day: cal,
+        status: ci.siteStop ? 'sitestop' : 'work', checkin: ci, leave: approved || null, day: cal,
         /* ครึ่งวัน: ทำงานครึ่งวัน + ลาครึ่งวัน (LV-06 · CI-14) */
         half: approved && approved.halfDay ? approved.halfDay : null,
         workDays: approved && approved.halfDay ? 0.5 : 1,
@@ -365,6 +365,42 @@ SS.core = (function () {
     return base + add;
   }
 
+  /* ----------------------------------------------------------------------
+     CI-18 (ฉบับ 8 ก.ย. 2569) · ธงอัตโนมัติแทนช่องเหตุผลที่ถูกตัดออก
+     ขึ้นธงเฉพาะรายการที่ "จำนวนมื้อเปลี่ยนจากค่าตั้งต้นของประเภทงาน"
+     สลับระหว่างแบบที่ให้มื้อเท่ากันไม่ขึ้นธง เพราะเงินไม่เปลี่ยน จึงไม่มีอะไรให้กัน
+     คำนวณตอนอ่าน ไม่บันทึกทับ — ตารางกลางแก้เมื่อไร ธงถูกต้องตามทันที
+     ---------------------------------------------------------------------- */
+  function defaultTravelFor(empId, jobTypeId) {
+    var emp = SS.store.employee(empId) || {};
+    if (emp.shift === 'night') return 'night';
+    var jt = SS.jobType(jobTypeId);
+    return jt ? jt.defaultTravel : 'office';
+  }
+
+  function mealFlag(ci) {
+    if (!ci) return null;
+    var def = defaultTravelFor(ci.empId, ci.jobType);
+    var base = mealCount([def]);
+    var actual = mealCount(ci.overtime ? [ci.travelType, 'overtime'] : [ci.travelType]);
+    if (actual === base) return null;
+    return {
+      from: base, to: actual,
+      why: 'จำนวนมื้อต่างจากค่าตั้งต้นของ ' + SS.name(SS.jobType, ci.jobType) +
+           ' (' + SS.name(SS.travelType, def) + ')'
+    };
+  }
+
+  /* ชุดลักษณะการไปที่ประเภทงานนั้นเลือกได้ (CI-18 · FB-2) */
+  function travelsFor(jobTypeId) {
+    var jt = SS.jobType(jobTypeId);
+    if (!jt || jt.travelLocked) return [];
+    var allow = jt.allowedTravel || [];
+    return db().travelTypes.filter(function (t) {
+      return t.enabled && !t.additive && allow.indexOf(t.id) >= 0;
+    });
+  }
+
   function rateAt(projectId, date) {
     var rows = db().rates.filter(function (r) {
       return r.projectId === projectId && r.from <= date && (!r.to || r.to >= date);
@@ -421,6 +457,7 @@ SS.core = (function () {
     approverOf: approverOf, authorityRow: authorityRow, onLeaveToday: onLeaveToday,
     autoCheckLeave: autoCheckLeave,
     mealCount: mealCount, rateAt: rateAt, allowanceOf: allowanceOf,
-    sitesFor: sitesFor, quickBar: quickBar
+    sitesFor: sitesFor, travelsFor: travelsFor, defaultTravelFor: defaultTravelFor,
+    mealFlag: mealFlag, quickBar: quickBar
   };
 })();

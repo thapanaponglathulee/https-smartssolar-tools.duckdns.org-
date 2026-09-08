@@ -37,26 +37,32 @@ SS.ROLES = [
 
 /* ==========================================================================
    S19 · ทะเบียนประเภทงาน — ตารางกลางของ spec-checkin-dropdown.md
-   siteFilter = สถานะโครงการที่แสดงในลิสต์ไซต์ (CI-16)
+   siteFilter    = สถานะโครงการที่แสดงในลิสต์ไซต์ (CI-16)
+   allowedTravel = ชุดลักษณะการไปที่เลือกได้ของประเภทงานนั้น
+                   แก้ 8 ก.ย. 2569 · เดิมเป็นแค่ "แก้ได้ / ล็อก" ทำให้งานหน้าไซต์
+                   เลือก "ประจำออฟฟิศ" ได้ ซึ่ง UAT FB-2 ทักว่าไม่ควรเป็นไปได้
    *** meals ห้ามแสดงให้พนักงานเห็น (CI-03) ***
    ========================================================================== */
 SS.JOB_TYPES = [
   { id: 'office', code: 'Office/Store', name: 'ประจำออฟฟิศ', requireSite: false,
     siteFilter: [], otherPlace: false, defaultTravel: 'office', travelLocked: true, enabled: true,
-    emptyMsg: '' },
+    allowedTravel: [], emptyMsg: '' },
   { id: 'onsite', code: 'Onsite', name: 'งานหน้าไซต์', requireSite: true,
     siteFilter: ['active'], otherPlace: false, defaultTravel: 'onsite', travelLocked: false, enabled: true,
+    allowedTravel: ['onsite', 'daytrip', 'am', 'pm', 'night'],
     emptyMsg: 'ยังไม่มีโครงการสถานะ "กำลังดำเนินการ" ในระบบ — ติดต่อแอดมินเพื่อเปิดโครงการก่อน' },
   { id: 'om', code: 'O&M', name: 'ซ่อมบำรุง', requireSite: true,
     siteFilter: ['done', 'active'], otherPlace: false, defaultTravel: 'daytrip', travelLocked: false, enabled: true,
+    allowedTravel: ['daytrip', 'am', 'pm', 'onsite', 'night'],
     emptyMsg: 'ยังไม่มีโครงการที่ส่งมอบแล้วหรือกำลังดำเนินการในระบบ' },
   { id: 'survey', code: 'Survey', name: 'สำรวจ', requireSite: true,
     siteFilter: ['plan'], otherPlace: true, defaultTravel: 'daytrip', travelLocked: false, enabled: true,
+    allowedTravel: ['daytrip', 'am', 'pm', 'onsite', 'night'],
     emptyMsg: 'ยังไม่มีโครงการสถานะ "แผนงาน" — เลือก "สถานที่อื่น" แล้วพิมพ์ชื่อสถานที่ได้' },
   /* CI-15 · CI-19: ปิดการใช้งาน ห้ามลบ ข้อมูลเก่ายังอ้างอิงอยู่ */
   { id: 'logistic', code: 'Logistic/Store', name: 'ขนส่ง/คลัง', requireSite: true,
     siteFilter: ['active'], otherPlace: false, defaultTravel: 'daytrip', travelLocked: false, enabled: false,
-    emptyMsg: '' }
+    allowedTravel: ['daytrip', 'am', 'pm'], emptyMsg: '' }
 ];
 
 /* ==========================================================================
@@ -70,7 +76,9 @@ SS.TRAVEL_TYPES = [
   { id: 'daytrip',  name: 'ไปเช้า-เย็นกลับ',        meals: 1, additive: false, replacesAll: false, enabled: true },
   { id: 'am',       name: 'ไปเช้า-บ่ายกลับ',        meals: 1, additive: false, replacesAll: false, enabled: true },
   { id: 'pm',       name: 'ไปบ่าย-เย็นกลับ',        meals: 1, additive: false, replacesAll: false, enabled: true },
-  { id: 'overtime', name: 'ทำงานนอกเวลาปฏิบัติงาน', meals: 1, additive: true,  replacesAll: false, enabled: true },
+  /* เปลี่ยนชื่อ 8 ก.ย. 2569 · ชื่อเดิม "ทำงานนอกเวลาปฏิบัติงาน" ชนกับฟอร์มชั่วโมง OT ใน CI-10
+     ตัวเลือกนี้ตอบเรื่องค่าอาหารเท่านั้น ไม่เก็บชั่วโมง ไม่ทำให้ได้วันชดเชย (UAT FB-7) */
+  { id: 'overtime', name: 'อยู่หน้างานนอกเวลา',      meals: 1, additive: true,  replacesAll: false, enabled: true },
   { id: 'night',    name: 'กะกลางคืน',              meals: 3, additive: false, replacesAll: true,  enabled: true }
 ];
 
@@ -176,6 +184,9 @@ SS.LEAVE_STATUS = [
    ========================================================================== */
 SS.DAY_STATUS = [
   { id: 'work',    name: 'ทำงาน',       pill: 'pill-green',  countWork: true,  allowance: true,  inList: false },
+  /* สถานะที่ 8 · เพิ่ม 8 ก.ย. 2569 จาก CI-26 — ไปถึงไซต์แล้วทำงานไม่ได้
+     ยังได้มื้อ ไม่นับขาดงาน ไม่หักวันลา ไม่กระทบสถิติมาสาย · แยกจาก "ทำงาน" และจาก "วันหยุด" */
+  { id: 'sitestop', name: 'หยุดงานที่ไซต์', pill: 'pill-orange', countWork: true, allowance: true, inList: true },
   { id: 'leave',   name: 'ลา',          pill: 'pill-blue',   countWork: false, allowance: false, inList: false },
   { id: 'holiday', name: 'วันหยุด',     pill: 'pill-gray',   countWork: false, allowance: false, inList: false },
   { id: 'pending', name: 'รออนุมัติลา', pill: 'pill-yellow', countWork: false, allowance: false, inList: true  },
@@ -190,6 +201,20 @@ SS.ABSENT_CAUSE = {
   rejected:  'ถูกปฏิเสธแล้วยังไม่มา',
   cancelled: 'ยกเลิกเองแล้วไม่มา'
 };
+
+/* ==========================================================================
+   S21 · ทะเบียนเหตุผลไซต์หยุดงาน (CI-26)
+   ตั้งค่าได้ ห้าม hardcode · เลือกจากรายการเท่านั้น เพื่อให้ออกรายงานได้
+   free = พิมพ์เพิ่มได้เฉพาะข้อนี้
+   ========================================================================== */
+SS.SITE_STOP_REASONS = [
+  { id: 'rain',     name: 'ฝนตก',                 free: false, enabled: true },
+  { id: 'customer', name: 'ลูกค้าสั่งหยุด',        free: false, enabled: true },
+  { id: 'material', name: 'รอวัสดุ/อุปกรณ์',       free: false, enabled: true },
+  { id: 'access',   name: 'เข้าพื้นที่ไม่ได้',     free: false, enabled: true },
+  { id: 'power',    name: 'ไฟฟ้า/ระบบไม่พร้อม',    free: false, enabled: true },
+  { id: 'other',    name: 'เหตุอื่น',              free: true,  enabled: true }
+];
 
 /* ==========================================================================
    S3 · ประเภทวันในปฏิทิน (CI-04)
@@ -238,6 +263,9 @@ SS.DEFAULT_PARAMS = {
   /* S18 · ALW-12 */
   payCycleStartDay: 16,     /* รอบ 16 ถึง 15 ของเดือนถัดไป */
 
+  /* CI-19 · FB-6 */
+  officeOvertimeMeals: 0,   /* ⚠ ยังไม่เคาะ — ประจำออฟฟิศอยู่หน้างานนอกเวลาได้กี่มื้อ รอผู้บริหารยืนยัน */
+
   /* S17 · ALW-02 */
   defaultMealRate: 40,      /* อัตราเริ่มต้นของบริษัท ใช้เมื่อไซต์ยังไม่ตั้งค่า */
 
@@ -274,4 +302,5 @@ SS.dayStatus   = finder(SS.DAY_STATUS);
 SS.leaveStatus = finder(SS.LEAVE_STATUS);
 SS.role        = finder(SS.ROLES);
 SS.dept        = finder(SS.DEPTS);
+SS.stopReason  = finder(SS.SITE_STOP_REASONS);
 SS.name = function (fn, id) { var o = fn(id); return o ? o.name : (id || '—'); };

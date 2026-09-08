@@ -61,8 +61,15 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
         '</div>' +
         '<div style="font-size:13.5px;color:#DDE6F6">' +
           (ci.projectId ? 'ไซต์: ' + esc(SS.name(SS.project, ci.projectId)) : ci.otherPlace ? 'สถานที่อื่น: ' + esc(ci.otherPlace) : 'ไม่ต้องระบุไซต์') +
-          ' · ' + esc(SS.name(SS.travelType, ci.travelType)) + (ci.overtime ? ' + ทำงานนอกเวลา' : '') +
-        '</div>';
+          ' · ' + esc(SS.name(SS.travelType, ci.travelType)) + (ci.overtime ? ' + อยู่หน้างานนอกเวลา' : '') +
+        '</div>' +
+        (ci.siteStop
+          ? '<div style="margin-top:9px;background:rgba(255,255,255,.16);border-radius:7px;padding:8px 11px;font-size:13.5px">' +
+            '<b>หยุดงานที่ไซต์</b> · ' + esc(SS.name(SS.stopReason, ci.siteStop.reason)) +
+            (ci.siteStop.note ? ' (' + esc(ci.siteStop.note) + ')' : '') +
+            ' · ' + (ci.siteStop.allDay ? 'ทั้งวัน' : 'ตั้งแต่ ' + esc(ci.siteStop.from)) +
+            '</div>'
+          : '');
     } else {
       html += '<div style="font-size:14.5px;color:#DDE6F6">ยังไม่ได้ลงเวลาวันนี้ — กรอกแบบฟอร์มด้านล่างแล้วกดเช็คอิน</div>';
       if (last.jobType) html += '<div style="font-size:13px;color:#C6D4EC">ระบบเลือกค่าจากครั้งล่าสุดไว้ให้แล้ว ' + U.ref('CI-11') + '</div>';
@@ -78,9 +85,16 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       html += '<div class="card"><div class="chead"><h2>วันนี้</h2><span class="sp"></span>' + U.ref(['CI-03', 'CI-06', 'CI-10']) + '</div>' +
         '<div class="choices">' +
           '<button class="btn btn-ghost" id="btnEditCi">แก้ไขรายการวันนี้</button>' +
-          '<button class="btn btn-ghost" id="btnOT">บันทึกการทำงานนอกเวลา</button>' +
+          /* CI-10 · ชื่อปุ่มตามสเปกฉบับ 8 ก.ย. — แยกจากตัวเลือก "อยู่หน้างานนอกเวลา" ให้ชัด */
+          '<button class="btn btn-ghost" id="btnOT">บันทึกชั่วโมง OT</button>' +
+          /* CI-26 · กดได้เฉพาะเมื่อไปถึงไซต์แล้ว */
+          (ci.projectId || ci.otherPlace
+            ? '<button class="btn btn-ghost" id="btnStop">' + (ci.siteStop ? 'แก้ไขการหยุดงานที่ไซต์' : 'หยุดงานที่ไซต์') + '</button>'
+            : '') +
           (ci.projectId ? '<button class="btn btn-accent" id="btnAllow">เบิกเบี้ยเลี้ยงของวันนี้</button>' : '') +
         '</div>' +
+        '<div class="hint" style="margin-top:9px">ปุ่ม "บันทึกชั่วโมง OT" คือที่เดียวที่เก็บชั่วโมงและแปลงเป็นวันชดเชย ' +
+        'ต้องยื่นแยกจึงจะได้วัน · ตัวเลือก "อยู่หน้างานนอกเวลา" ในฟอร์มเช็คอินตอบเรื่องค่าอาหารอย่างเดียว ' + U.ref(['CI-10', 'CI-19']) + '</div>' +
         /* CI-03 · ห้ามมีจำนวนเงินบนปุ่มหรือที่ใดในหน้านี้ */
         U.note('mock', 'หน้านี้ตั้งใจไม่แสดงจำนวนเงิน จำนวนมื้อ หรืออัตราใด ๆ ตาม CI-03 — ปุ่มเบิกเบี้ยเลี้ยงจึงไม่มีตัวเลขกำกับ') +
         '</div>';
@@ -94,6 +108,7 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
     else {
       $('#btnEditCi').addEventListener('click', function () { editCheckinModal(ci); });
       $('#btnOT').addEventListener('click', function () { otModal(me); });
+      if ($('#btnStop')) $('#btnStop').addEventListener('click', function () { siteStopModal(ci); });
       if ($('#btnAllow')) $('#btnAllow').addEventListener('click', function () {
         U.modal({
           title: 'เบิกเบี้ยเลี้ยงของวันนี้',
@@ -127,7 +142,7 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       jobType: last.jobType || me.defaultJobType || 'office',
       projectId: last.projectId || null,
       otherPlace: '',
-      travelType: null, travelChanged: false, travelReason: '',
+      travelType: null, travelChanged: false,
       overtime: false, detail: ''
     };
     if (me.shift === 'night') state.travelType = 'night';
@@ -166,22 +181,23 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       }
 
       if (!jt.travelLocked) {
+        /* CI-18 · เลือกได้เฉพาะชุดที่ประเภทงานนั้นอนุญาต — งานหน้าไซต์ไม่มี "ประจำออฟฟิศ" ให้เลือก (FB-2) */
         h += '<div class="field"><label>ลักษณะการไปงาน</label>' +
-          '<select id="fTravel">' + U.options(S.get().travelTypes.filter(function (t) { return t.enabled && !t.additive; }), state.travelType) + '</select>' +
-          '<div class="hint">ระบบเติมค่าให้จากประเภทงานแล้ว (' + esc(SS.name(SS.travelType, defTravel)) + ') ส่วนใหญ่ไม่ต้องแตะช่องนี้</div></div>';
-        if (state.travelChanged) {
-          h += '<div class="field"><label>เหตุผลที่เลือกต่างจากค่าตั้งต้น <span class="req">*</span></label>' +
-            '<input type="text" id="fReason" value="' + esc(state.travelReason) + '" placeholder="เช่น ไปอบรมหน้างานครึ่งวัน">' +
-            '<div class="hint">รายการที่ต่างจากค่าตั้งต้นจะขึ้นสัญลักษณ์ให้ผู้อนุมัติเห็น</div></div>';
-        }
-        h += '<label class="choice' + (state.overtime ? ' on' : '') + '" style="margin-bottom:13px">' +
-          '<input type="checkbox" id="fOT"' + (state.overtime ? ' checked' : '') + '> ทำงานนอกเวลาปฏิบัติงาน</label>';
+          '<select id="fTravel">' + U.options(C.travelsFor(state.jobType), state.travelType) + '</select>' +
+          '<div class="hint">ระบบเติมค่าให้จากประเภทงานแล้ว (' + esc(SS.name(SS.travelType, defTravel)) + ') ส่วนใหญ่ไม่ต้องแตะช่องนี้ ' +
+          'เปลี่ยนได้ทันทีโดยไม่ต้องกรอกอะไรเพิ่ม</div></div>';
+        h += '<label class="choice' + (state.overtime ? ' on' : '') + '" style="margin-bottom:6px">' +
+          '<input type="checkbox" id="fOT"' + (state.overtime ? ' checked' : '') + '> อยู่หน้างานนอกเวลา</label>' +
+          '<div class="hint" style="margin-bottom:13px">ช่องนี้ตอบเรื่องค่าอาหารเท่านั้น ไม่ได้เก็บชั่วโมงและไม่ทำให้ได้วันชดเชย — ' +
+          'ถ้าต้องการวันชดเชย ให้กดปุ่ม "บันทึกชั่วโมง OT" หลังเช็คอินเสร็จ ' + U.ref(['CI-19', 'CI-10']) + '</div>';
       } else {
         h += U.note('mock', 'ประเภทงาน "ประจำออฟฟิศ" ล็อกลักษณะการไปงานไว้ตายตัว จึงไม่แสดงช่องนี้และไม่ต้องเลือกไซต์ — เช็คอินเหลือกดปุ่มเดียว');
       }
 
-      h += '<div class="field"><label>รายละเอียดงาน</label>' +
-        '<textarea id="fDetail" placeholder="สรุปสั้น ๆ ว่าวันนี้ทำอะไร">' + esc(state.detail) + '</textarea></div>' +
+      /* CI-05 · ช่องบังคับกรอก · ทำหน้าที่แทนช่องเหตุผลที่ถูกตัดออกจาก CI-18 (FB-1) */
+      h += '<div class="field"><label>รายละเอียดงานที่ทำ <span class="req">*</span></label>' +
+        '<textarea id="fDetail" placeholder="สรุปสั้น ๆ ว่าวันนี้ทำอะไร">' + esc(state.detail) + '</textarea>' +
+        '<div class="hint">บันทึกไม่ได้ถ้าเว้นว่าง — ช่องนี้คือสิ่งที่ผู้อนุมัติใช้ดูว่าวันนั้นทำอะไร ' + U.ref('CI-05') + '</div></div>' +
         '<button class="btn btn-accent btn-lg btn-block" id="btnCi">เช็คอิน</button>';
 
       el.innerHTML = h;
@@ -191,13 +207,12 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
         /* CI-16 · เปลี่ยนประเภทงาน → ลิสต์ไซต์รีเฟรช ล้างค่าที่เลือกถ้าไม่อยู่ในลิสต์ใหม่ */
         var ok = C.sitesFor(state.jobType).some(function (p) { return p.id === state.projectId; });
         if (!ok) { state.projectId = null; state.otherPlace = ''; }
-        state.travelType = null; state.travelReason = '';
+        state.travelType = null;
         draw();
       });
       if ($('#fSite')) $('#fSite').addEventListener('change', function () { state.projectId = this.value || null; draw(); });
       if ($('#fOther')) $('#fOther').addEventListener('input', function () { state.otherPlace = this.value; });
       if ($('#fTravel')) $('#fTravel').addEventListener('change', function () { state.travelType = this.value; draw(); });
-      if ($('#fReason')) $('#fReason').addEventListener('input', function () { state.travelReason = this.value; });
       if ($('#fOT')) $('#fOT').addEventListener('change', function () { state.overtime = this.checked; draw(); });
       $('#fDetail').addEventListener('input', function () { state.detail = this.value; });
       $('#btnCi').addEventListener('click', submit);
@@ -207,13 +222,13 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       var jt = SS.jobType(state.jobType);
       if (jt.requireSite && !state.projectId) return U.toast('กรุณาเลือกไซต์งาน', 'err');
       if (state.projectId === '__other' && !state.otherPlace.trim()) return U.toast('กรุณาพิมพ์ชื่อสถานที่', 'err');
-      if (state.travelChanged && !state.travelReason.trim()) return U.toast('เลือกลักษณะการไปงานต่างจากค่าตั้งต้น ต้องกรอกเหตุผล', 'err');
+      if (!state.detail.trim()) return U.toast('กรุณากรอกรายละเอียดงานที่ทำ', 'err');
       var r = S.checkIn({
         empId: me.id, jobType: state.jobType,
         projectId: state.projectId === '__other' ? null : state.projectId,
         otherPlace: state.projectId === '__other' ? state.otherPlace.trim() : '',
-        travelType: state.travelType, travelChanged: state.travelChanged, travelReason: state.travelReason,
-        overtime: state.overtime, detail: state.detail
+        travelType: state.travelType, travelChanged: state.travelChanged,
+        overtime: state.overtime, detail: state.detail.trim()
       });
       if (!r.ok) return U.toast(r.msg, 'err');
       U.toast('เช็คอินเวลา ' + r.rec.time + (r.late ? ' · สาย ' + r.late + ' นาที' : ' · ตรงเวลา'), r.late ? '' : 'ok');
@@ -259,6 +274,69 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
           } }
       ]
     });
+  }
+
+  /* ---------- CI-26 · หยุดงานที่ไซต์ ----------
+     ไปถึงไซต์แล้วทำงานไม่ได้ — ฝนตก ลูกค้าสั่งหยุด รอวัสดุ เข้าพื้นที่ไม่ได้
+     ยังได้มื้อ ไม่นับขาดงาน ไม่หักวันลา · เหตุผลเลือกจากทะเบียน S21 ห้ามพิมพ์อิสระ
+     ----------------------------------------------------------------- */
+  function siteStopModal(ci) {
+    var reasons = S.get().stopReasons.filter(function (r) { return r.enabled; });
+    var cur = ci.siteStop || {};
+    var sel = cur.reason || reasons[0].id;
+    var allDay = cur.allDay === undefined ? true : cur.allDay;
+
+    function body() {
+      var r = SS.stopReason(sel) || {};
+      return '<p style="font-size:14px;margin:0 0 14px">ไปถึงไซต์แล้วแต่ทำงานไม่ได้ บันทึกไว้ที่นี่ — ' +
+        '<b>ยังได้ค่าอาหารตามปกติ ไม่นับขาดงาน และไม่หักวันลา</b> เพราะเดินทางไปถึงจริง</p>' +
+        '<div class="field"><label>เหตุผล <span class="req">*</span></label>' +
+        '<select id="sReason">' + U.options(reasons, sel, 'id', 'name') + '</select>' +
+        '<div class="hint">เลือกจากรายการเท่านั้น เพื่อให้สรุปได้ว่าไซต์ไหนเสียเวลาไปกับอะไร ' + U.ref('S21') + '</div></div>' +
+        (r.free
+          ? '<div class="field"><label>ระบุเหตุ <span class="req">*</span></label>' +
+            '<input type="text" id="sNote" value="' + esc(cur.note || '') + '" placeholder="เช่น รถขนของเสียกลางทาง"></div>'
+          : '') +
+        '<div class="field"><label>ช่วงเวลา</label><div class="choices">' +
+          '<label class="choice' + (allDay ? ' on' : '') + '"><input type="radio" name="sAll" value="1"' + (allDay ? ' checked' : '') + '> หยุดทั้งวัน</label>' +
+          '<label class="choice' + (allDay ? '' : ' on') + '"><input type="radio" name="sAll" value="0"' + (allDay ? '' : ' checked') + '> หยุดตั้งแต่เวลา</label>' +
+        '</div></div>' +
+        '<div class="field"' + (allDay ? ' hidden' : '') + ' id="sFromWrap"><label>ตั้งแต่เวลา</label>' +
+        '<input type="time" id="sFrom" value="' + esc(cur.from || '13:00') + '">' +
+        '<div class="hint">สำหรับกรณีอย่างฝนตกตอนบ่าย</div></div>' +
+        U.note('mock', 'การประกาศปิดไซต์ทีเดียวทั้งไซต์ต้องมีระบบมอบหมายกำลังคน (SITE-01) ซึ่งมีมติ 8 ก.ย. 2569 ว่าไม่อยู่ในเฟสนี้ — รอบนี้จึงเป็นรายคน หัวหน้ากดแทนลูกทีมที่เช็คอินไซต์นั้นแล้วได้');
+    }
+
+    function bind() {
+      $('#sReason').addEventListener('change', function () { sel = this.value; U.closeModal(); open(); });
+      $$('[name=sAll]').forEach(function (r) {
+        r.addEventListener('change', function () { allDay = this.value === '1'; U.closeModal(); open(); });
+      });
+    }
+
+    function open() {
+      U.modal({
+        title: (ci.siteStop ? 'แก้ไขการหยุดงานที่ไซต์ · ' : 'หยุดงานที่ไซต์ · ') + U.date(ci.date, 'long'),
+        body: body(),
+        buttons: [{ label: 'ปิด', cls: 'btn-ghost' }]
+          .concat(ci.siteStop ? [{ label: 'ยกเลิกการหยุดงาน', cls: 'btn-danger', onClick: function () {
+            S.clearSiteStop(ci.id); U.toast('ยกเลิกการหยุดงานที่ไซต์แล้ว', 'ok'); SS.app.refresh();
+          } }] : [])
+          .concat([{ label: 'บันทึก', cls: 'btn-accent', onClick: function () {
+            var r = S.setSiteStop(ci.id, {
+              reason: sel,
+              note: $('#sNote') ? $('#sNote').value.trim() : '',
+              allDay: allDay,
+              from: $('#sFrom') ? $('#sFrom').value : null
+            });
+            if (!r.ok) { U.toast(r.msg, 'err'); return false; }
+            U.toast('บันทึกหยุดงานที่ไซต์แล้ว · ยังได้ค่าอาหารตามปกติ ไม่นับขาดงาน', 'ok');
+            SS.app.refresh();
+          } }]),
+        onOpen: bind
+      });
+    }
+    open();
   }
 
   /* ---------- CI-10 · ทำงานนอกเวลา ---------- */
@@ -308,7 +386,10 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
         '<td>' + esc(c.time) + (late ? ' <span class="pill pill-yellow">สาย ' + late + '</span>' : '') + '</td>' +
         '<td>' + esc(SS.name(SS.jobType, c.jobType)) + '</td>' +
         '<td>' + esc(c.projectId ? SS.name(SS.project, c.projectId) : c.otherPlace || '—') + '</td>' +
-        '<td>' + esc(SS.name(SS.travelType, c.travelType)) + (c.travelChanged ? ' <span class="pill pill-orange">แก้จากค่าตั้งต้น</span>' : '') + '</td>' +
+        /* CI-18 ฉบับ 8 ก.ย. · ธงขึ้นเฉพาะรายการที่จำนวนมื้อเปลี่ยน ไม่ใช่ทุกครั้งที่แก้จากค่าตั้งต้น */
+        '<td>' + esc(SS.name(SS.travelType, c.travelType)) +
+          (C.mealFlag(c) ? ' <span class="pill pill-orange" title="' + esc(C.mealFlag(c).why) + '">มื้อเปลี่ยน</span>' : '') +
+          (c.siteStop ? ' <span class="pill pill-orange">หยุดงานที่ไซต์</span>' : '') + '</td>' +
         '<td>' + (c.status === 'active' ? U.pill('pill-green', 'ใช้งาน') : U.pill('pill-gray', 'ยกเลิกแล้ว')) +
           (c.editLog && c.editLog.length ? ' <span class="pill pill-blue">แก้ไข ' + c.editLog.length + ' ครั้ง</span>' : '') + '</td>' +
         '<td style="text-align:right">' + (c.status === 'active'

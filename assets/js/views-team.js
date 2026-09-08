@@ -118,8 +118,17 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       '<span class="sub">' + esc(cal.name || SS.name(SS.dayType, cal.type)) + '</span><span class="sp"></span>' + U.dayPill(st) + '</div>';
 
     h += '<ul class="tl">';
-    if (st.checkin) h += '<li><span class="tt">' + esc(st.checkin.time) + '</span><span>เช็คอิน · ' +
-      esc(SS.name(SS.jobType, st.checkin.jobType)) + (st.checkin.projectId ? ' · ' + esc(SS.name(SS.project, st.checkin.projectId)) : '') + '</span></li>';
+    if (st.checkin) {
+      var fl = C.mealFlag(st.checkin);
+      h += '<li><span class="tt">' + esc(st.checkin.time) + '</span><span>เช็คอิน · ' +
+        esc(SS.name(SS.jobType, st.checkin.jobType)) + (st.checkin.projectId ? ' · ' + esc(SS.name(SS.project, st.checkin.projectId)) : '') +
+        (fl ? ' <span class="pill pill-orange">มื้อเปลี่ยน</span>' : '') + '</span></li>';
+      /* CI-26 */
+      if (st.checkin.siteStop) h += '<li><span class="tt">—</span><span>หยุดงานที่ไซต์ · ' +
+        esc(SS.name(SS.stopReason, st.checkin.siteStop.reason)) +
+        (st.checkin.siteStop.note ? ' (' + esc(st.checkin.siteStop.note) + ')' : '') +
+        ' · ' + (st.checkin.siteStop.allDay ? 'ทั้งวัน' : 'ตั้งแต่ ' + esc(st.checkin.siteStop.from)) + '</span></li>';
+    }
     if (st.leave) h += '<li><span class="tt">ใบลา</span><span>' + esc(st.leave.id) + ' · ' + esc(SS.name(SS.leaveType, st.leave.type)) +
       ' · ' + U.leavePill(st.leave.status) + '</span></li>';
     evs.forEach(function (e) {
@@ -143,7 +152,8 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       team.forEach(function (p) {
         var s2 = C.dayStatus(p.id, date);
         var info = s2.checkin ? (s2.checkin.projectId ? SS.name(SS.project, s2.checkin.projectId) : SS.name(SS.jobType, s2.checkin.jobType)) +
-                     ' · เช็คอิน ' + s2.checkin.time + (C.lateMinutes(s2.checkin) ? ' (สาย ' + C.lateMinutes(s2.checkin) + ' นาที)' : '')
+                     ' · เช็คอิน ' + s2.checkin.time + (C.lateMinutes(s2.checkin) ? ' (สาย ' + C.lateMinutes(s2.checkin) + ' นาที)' : '') +
+            (s2.checkin.siteStop ? ' · หยุดงาน: ' + SS.name(SS.stopReason, s2.checkin.siteStop.reason) : '')
                    : s2.leave ? U.range(s2.leave.from, s2.leave.to) : '—';
         h += '<tr><td>' + U.person(p, SS.name(SS.dept, p.dept)) + '</td><td>' + U.dayPill(s2) +
           (s2.status === 'absent' && !s2.notYet && s2.cause !== 'none' ? '<br><small>' + esc(SS.ABSENT_CAUSE[s2.cause]) + '</small>' : '') + '</td>' +
@@ -415,7 +425,8 @@ window.SS = window.SS || {}; SS.views = SS.views || {};
       g.forEach(function (x) {
         var info = x.st.checkin
           ? (x.st.checkin.projectId ? SS.name(SS.project, x.st.checkin.projectId) : SS.name(SS.jobType, x.st.checkin.jobType)) +
-            ' · เช็คอิน ' + x.st.checkin.time + (C.lateMinutes(x.st.checkin) ? ' (สาย ' + C.lateMinutes(x.st.checkin) + ' นาที)' : '')
+            ' · เช็คอิน ' + x.st.checkin.time + (C.lateMinutes(x.st.checkin) ? ' (สาย ' + C.lateMinutes(x.st.checkin) + ' นาที)' : '') +
+            (x.st.checkin.siteStop ? ' · หยุดงาน: ' + SS.name(SS.stopReason, x.st.checkin.siteStop.reason) : '')
           : x.st.leave ? U.range(x.st.leave.from, x.st.leave.to)
           : x.st.status === 'absent' ? (x.st.notYet ? 'ยังไม่ถึงเวลาเลิกงาน จึงยังไม่ตัดสินว่าขาดงาน' : SS.ABSENT_CAUSE[x.st.cause]) : '—';
         h += '<tr><td style="width:34%">' + U.person(x.emp) + '</td><td>' + esc(info) + '</td>' +

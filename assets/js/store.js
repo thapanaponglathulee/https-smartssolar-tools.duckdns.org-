@@ -73,7 +73,7 @@ SS.store = (function () {
         id: 'CI-' + emp.id + '-' + date, empId: emp.id, date: date, time: time,
         jobType: job, projectId: prj, otherPlace: '',
         travelType: emp.shift === 'night' ? 'night' : jt.defaultTravel,
-        travelChanged: false, travelReason: '', overtime: false,
+        travelChanged: false, siteStop: null, overtime: false,
         detail: holidayWork ? 'เร่งงานติดตั้งก่อนส่งมอบ' : '',
         status: 'active', rawSite: null, createdAt: date + ' ' + time, editLog: []
       };
@@ -93,6 +93,7 @@ SS.store = (function () {
       rates: JSON.parse(JSON.stringify(SS.ALLOWANCE_RATES)),
       jobTypes: JSON.parse(JSON.stringify(SS.JOB_TYPES)),
       travelTypes: JSON.parse(JSON.stringify(SS.TRAVEL_TYPES)),
+      stopReasons: JSON.parse(JSON.stringify(SS.SITE_STOP_REASONS)),   /* S21 · CI-26 */
       authority: JSON.parse(JSON.stringify(SS.SEED_AUTHORITY)),
       calendar: SS.SEED_CAL_CACHE,
       balances: SS.SEED_BALANCES(y),
@@ -173,7 +174,10 @@ SS.store = (function () {
       var rec = {
         id: 'CI-' + data.empId + '-' + T, empId: data.empId, date: T, time: SS.d.now(),
         jobType: data.jobType, projectId: data.projectId || null, otherPlace: data.otherPlace || '',
-        travelType: data.travelType, travelChanged: !!data.travelChanged, travelReason: data.travelReason || '',
+        travelType: data.travelType, travelChanged: !!data.travelChanged,
+        /* ช่องเหตุผลถูกตัดออกทั้งช่องเมื่อ 8 ก.ย. 2569 (CI-18) — การควบคุมย้ายไปที่ธงอัตโนมัติ
+           ที่ core.mealFlag() คำนวณตอนอ่าน จึงไม่มี travelReason ในรายการใหม่อีก */
+        siteStop: null,
         overtime: !!data.overtime, detail: data.detail || '', status: 'active',
         rawSite: null, createdAt: T + ' ' + SS.d.now(), editLog: []
       };
@@ -218,6 +222,37 @@ SS.store = (function () {
       log('แก้ไขเช็คอิน', id, JSON.stringify(before) + ' → ' + JSON.stringify(patch), before);
       emit();
       return { ok: true, needApproval: false };
+    },
+
+    /* ---------- CI-26 · หยุดงานที่ไซต์ ----------
+       กดได้หลังเช็คอินแล้วเท่านั้น — ต้องไปถึงก่อนถึงจะหยุดได้
+       ยังได้มื้อ ไม่นับขาดงาน ไม่หักวันลา และไม่ถือเป็นการเปลี่ยนจำนวนมื้อ จึงไม่ขึ้นธงตาม CI-18 */
+    setSiteStop: function (checkinId, data) {
+      var c = state.checkins.filter(function (x) { return x.id === checkinId; })[0];
+      if (!c) return { ok: false, msg: 'ไม่พบรายการเช็คอิน' };
+      if (c.status !== 'active') return { ok: false, msg: 'รายการนี้ถูกยกเลิกไปแล้ว' };
+      var r = SS.stopReason(data.reason);
+      if (!r) return { ok: false, msg: 'กรุณาเลือกเหตุผลจากรายการ' };
+      if (r.free && !String(data.note || '').trim()) return { ok: false, msg: 'เลือก "เหตุอื่น" ต้องระบุว่าเหตุอะไร' };
+      c.siteStop = {
+        reason: data.reason, note: data.note || '',
+        allDay: !!data.allDay, from: data.allDay ? null : (data.from || null),
+        by: state.currentUserId, at: new Date().toISOString()
+      };
+      log('บันทึกหยุดงานที่ไซต์', checkinId,
+          SS.name(SS.stopReason, data.reason) + (data.note ? ' · ' + data.note : '') +
+          (data.allDay ? ' · ทั้งวัน' : ' · ตั้งแต่ ' + (data.from || '—')) +
+          (state.currentUserId !== c.empId ? ' · หัวหน้ากดแทน ' + (employee(c.empId) || {}).name : ''));
+      emit();
+      return { ok: true, rec: c };
+    },
+    clearSiteStop: function (checkinId, reason) {
+      var c = state.checkins.filter(function (x) { return x.id === checkinId; })[0];
+      if (!c || !c.siteStop) return { ok: false };
+      c.siteStop = null;
+      log('ยกเลิกการหยุดงานที่ไซต์', checkinId, reason || '');
+      emit();
+      return { ok: true };
     },
 
     cancelCheckin: function (id, reason) {
