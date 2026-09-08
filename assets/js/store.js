@@ -393,9 +393,23 @@ SS.store = (function () {
 
     /* ---------- UAT feedback ---------- */
     addFeedback: function (fb) {
-      fb.id = 'FB-' + (state.feedback.length + 1);
+      /* เลขที่ห้ามซ้ำแม้ลบรายการกลาง ๆ ไปแล้ว — ปุ่มแก้ไขอ้างอิงเลขที่นี้ */
+      var max = 0;
+      state.feedback.forEach(function (f) { var n = +String(f.id).replace('FB-', ''); if (n > max) max = n; });
+      fb.id = 'FB-' + (max + 1);
       fb.at = new Date().toISOString();
+      fb.editedAt = null;
       state.feedback.push(fb); emit(); return fb;
+    },
+    updateFeedback: function (id, patch) {
+      var f = state.feedback.filter(function (x) { return x.id === id; })[0];
+      if (!f) return null;
+      Object.keys(patch).forEach(function (k) { f[k] = patch[k]; });
+      f.editedAt = new Date().toISOString();   /* เก็บเวลาที่บันทึกครั้งแรกไว้ ไม่ทับ */
+      emit(); return f;
+    },
+    feedbackItem: function (id) {
+      return state.feedback.filter(function (f) { return f.id === id; })[0] || null;
     },
     removeFeedback: function (id) {
       state.feedback = state.feedback.filter(function (f) { return f.id !== id; }); emit();

@@ -269,3 +269,14 @@ table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
 }
 @media (max-width:560px){.ribbon .msg{display:none}.stat .v{font-size:23px}.modal .mf .btn{flex:1}}
 @media print{.ribbon,.sidebar,.topbar,.mbar,.fab,.toasts,.btn{display:none!important}.main{margin-left:0}.layout{padding-top:0}.card{break-inside:avoid;box-shadow:none}}
+
+/* ---------- วิธีแจ้งผล UAT ---------- */
+.howto{border:1px solid var(--line);border-radius:8px;background:#FAFBFD;margin:0 0 16px;font-size:13px}
+.howto summary{cursor:pointer;padding:10px 14px;font-weight:700;color:var(--ss-blue);list-style:none}
+.howto summary::-webkit-details-marker{display:none}
+.howto summary::before{content:"▸ ";display:inline-block;transition:transform .15s}
+.howto[open] summary::before{content:"▾ "}
+.howto ol{margin:0;padding:0 18px 4px 34px;line-height:1.7}
+.howto li{margin-bottom:5px}
+.howto .hn{margin:0;padding:0 14px 12px;color:var(--dim);font-size:12.5px;line-height:1.6}
+table.t tr.on td{background:#FFF6EC}
