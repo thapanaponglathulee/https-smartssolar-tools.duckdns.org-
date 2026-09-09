@@ -34,7 +34,9 @@
 ฐานข้อมูล:             ไม่มี — เก็บใน localStorage คีย์ ss-hr-uat-v2
 คำสั่งติดตั้ง:          ไม่มีขั้นตอน ไม่มี dependency
 คำสั่งรัน dev:          npx http-server -p 8080 .   → เปิด http://localhost:8080
-คำสั่งรันเทสต์:         ไม่มีเทสต์ ไม่มี test runner ไม่มี CI
+คำสั่งรันเทสต์:         node tests/run.js       ชุดตรรกะ ไม่ต้องติดตั้งอะไร
+                       node tests/e2e/run-e2e.js  ชุดหน้าจอจริงบน Chromium (ต้องมี playwright)
+                       node tests/run-all.js   ทั้งสองชุดต่อกัน · ยังไม่มี CI
 คำสั่ง lint / format:   ไม่มี
 โครงสร้างไฟล์หลัก:      หน้าเว็บทั้งหมดอยู่ใน index.html ไฟล์เดียว
                        ไม่มี API · ค่าตั้งค่าอยู่ที่ masters.js บรรทัด 209
@@ -153,6 +155,9 @@
 - `docs/spec-allowance.md` — เมนูเบี้ยเลี้ยง
 - `docs/spec-dashboard.md` — หน้า Dashboard
 - `docs/tasks.md` — เช็กลิสต์เรียงลำดับที่ควรทำ
+- `docs/uat-checklist.md` — รายการที่ **คน** กดทดสอบเอง แปลงจากเกณฑ์ตรวจรับ
+- `docs/test-cases.md` — รายการที่ **เครื่อง** ทดสอบให้ (สร้างจากโค้ดเทสต์ ห้ามแก้ด้วยมือ)
+- `docs/test-report.md` — ผลการรันล่าสุดและข้อค้นพบ
 
 - `docs/spec-site.md` — โครงการ/ไซต์งาน **(ไม่อยู่ในเฟสนี้ — เป็นบันทึกอย่างเดียว ห้ามสั่งงาน ห้ามสร้างหน้าจอ ห้ามใส่ลงต้นแบบ)**
 
